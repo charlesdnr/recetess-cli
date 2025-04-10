@@ -1,3 +1,3 @@
 export const environment = {
-  endpoint: 'https://recettes-server.onrender.com/'
+  endpoint: 'https://recettes-server.onrender.com'
 };

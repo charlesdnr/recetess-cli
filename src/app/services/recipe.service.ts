@@ -4,13 +4,14 @@ import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http'; // A
 import { Observable, of, throwError } from 'rxjs';
 import { catchError, tap, map, shareReplay } from 'rxjs/operators';
 import { Recipe, Category } from '../models/recipe.model'; // Subcategory peut ne plus être utile ici
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class RecipeService {
   // URL de l'API backend
-  readonly backendBaseUrl = 'http://localhost:3000'; // URL de base du backend
+  readonly backendBaseUrl = environment.port; // URL de base du backend
   private apiUrl = `${this.backendBaseUrl}/api/recipes`;
   private uploadUrl = `${this.backendBaseUrl}/api/upload/image`;
 

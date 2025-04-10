@@ -1,1 +1,202 @@
 /* You can add global styles to this file, and also import other style files */
+
+/* styles.scss - Correction des couleurs */
+
+:root {
+  /* Palette de couleurs principale */
+  --mycolor-color: #FF6978;    /* Rose-corail */
+  --secondary-color: #6E9887;  /* Vert sauge */
+  --accent-color: #E9DF00;     /* Jaune vif */
+  --dark-color: #2E1F27;       /* Bordeaux foncé */
+  --dark-dark-color: #22171d;
+  --light-color: #FFEBE7;      /* Rose pâle */
+
+  /* Couleurs d'interface */
+  --text-color: #2E1F27;
+  --light-text: #6E9887;
+  --background-color: #FFEBE7;
+  --card-background: #FFFFFF;  /* Fond des cartes en blanc */
+  --card-dark-background: #1A1A1A; /* Fond sombre pour certaines sections */
+  --border-color: #FFEBE7;
+  --white: #FFFFFF;
+  --shadow: 0 4px 6px rgba(46, 31, 39, 0.1);
+
+  // /* PrimeNG Variables Override */
+  --surface-a: var(--background-color);
+  --surface-b: var(--card-background);
+  --surface-c: var(--light-color);
+  --surface-d: var(--light-color);
+  --surface-e: var(--card-background);
+  --surface-f: var(--card-background);
+  --text-color: var(--dark-color);
+  --text-color-secondary: var(--secondary-color);
+  --primary-color: var(--primary-color);
+  --primary-color-text: var(--white);
+  --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  --surface-0: var(--card-background);
+  --surface-50: var(--light-color);
+  --surface-100: var(--light-color);
+  --surface-200: var(--light-color);
+  --surface-300: var(--light-color);
+  --surface-400: var(--light-color);
+  --surface-500: var(--light-color);
+  --surface-600: var(--secondary-color);
+  --surface-700: var(--dark-color);
+  --surface-800: var(--dark-color);
+  --surface-900: var(--dark-color);
+  --gray-50: var(--light-color);
+  --gray-100: var(--light-color);
+  --gray-200: var(--light-color);
+  --gray-300: var(--light-color);
+  --gray-400: var(--light-color);
+  --gray-500: var(--secondary-color);
+  --gray-600: var(--secondary-color);
+  --gray-700: var(--dark-color);
+  --gray-800: var(--dark-color);
+  --gray-900: var(--dark-color);
+  --content-padding: 1rem;
+  --inline-spacing: 0.5rem;
+  --border-radius: 8px;
+  --surface-ground: var(--light-color);
+  --surface-section: var(--card-background);
+  --surface-card: var(--card-background);
+  --surface-overlay: var(--card-background);
+  --surface-border: var(--light-color);
+  --surface-hover: var(--light-color);
+  --focus-ring: 0 0 0 0.2rem var(--accent-color);
+  --maskbg: rgba(0, 0, 0, 0.4);
+
+  --p-tag-primary-color: var(--light-color);
+  --p-tag-primary-background: var(--secondary-color);
+  --p-button-primary-background: var(--secondary-color);
+  --p-button-primary-color: var(--light-color);
+  --p-button-primary-border-color: var(--secondary-color);
+  --p-button-text-primary-color: var(--secondary-color);
+  --p-inputtext-background: var(--light-color);
+  --p-inputtext-color: var(--dark-color);
+  --p-inputtext-focus-border-color: var(--mycolor-color);
+  --p-inputgroup-addon-background: var(--light-color);
+  --p-menubar-submenu-background: var(--dark-color);
+  // --p-menubar-submenu-hover-background: var(--dark-color);
+  --p-menubar-background: var(--dark-color);
+  --p-menubar-border-color: var(--dark-color);
+  --p-menubar-item-focus-background:var(--light-color);
+  --p-menubar-item-active-background: var(--light-color);
+  // --p-menubar-item-color: var(--dark-color);
+}
+
+body {
+  font-family: var(--font-family);
+  margin: 0;
+  padding: 0;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  line-height: 1.5;
+}
+
+/* Personnalisation des styles de cartes */
+.p-card {
+  background-color: var(--card-background);
+  color: var(--text-color);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+
+  .p-card-title {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: var(--light-color);
+    background-color: var(--mycolor-color);
+    padding: 5px;
+    padding-right: 10px;
+    padding-left: 10px;
+    border-radius: var(--border-radius);
+  }
+
+  .p-card-subtitle {
+    color: var(--secondary-color);
+  }
+}
+
+// /* Style pour les sections avec fond noir */
+.dark-section {
+  background-color: var(--card-dark-background);
+  color: var(--white);
+  border-radius: var(--border-radius);
+  padding: 1rem;
+
+  h3, h4 {
+    color: var(--primary-color);
+  }
+
+  p {
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  a, .p-button.p-button-text {
+    color: var(--accent-color);
+  }
+}
+
+/* Style pour le bouton "Voir toutes les recettes" */
+.view-all-button {
+  color: var(--secondary-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem;
+  font-weight: 500;
+  text-decoration: none;
+
+  i {
+    margin-right: 0.5rem;
+  }
+
+  &:hover {
+    color: var(--primary-color);
+    text-decoration: underline;
+  }
+}
+
+// /* Personnalisation des liens de sous-catégories */
+.subcategory-link {
+  color: var(--dark-color);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  transition: all 0.2s ease;
+
+  i {
+    color: var(--secondary-color);
+    margin-right: 0.5rem;
+  }
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--secondary-color);
+  }
+}
+
+/* Styles pour améliorer le contraste et la lisibilité */
+h1, h2, h3 {
+  color: var(--dark-color);
+  font-weight: 600;
+}
+
+.category-title {
+  color: var(--white);
+  font-size: 1.5rem;
+  margin: 0;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+
+  i {
+    margin-right: 0.75rem;
+    color: var(--primary-color);
+  }
+}
+.p-menubar-item-content {
+  background-color: var(--dark-color);
+}

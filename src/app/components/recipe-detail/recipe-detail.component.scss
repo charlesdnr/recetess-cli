@@ -14,7 +14,7 @@
     }
 
     &:hover {
-      color: var(--primary-color);
+      color: var(--mycolor-color);
       text-decoration: underline;
     }
   }
@@ -31,10 +31,9 @@
 
 .recipe-header {
   padding: 1.5rem;
-  background-color: var(--primary-color);
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: flex-start;  
 
   .recipe-title {
     h1 {
@@ -96,7 +95,7 @@
 
     i {
       font-size: 1.5rem;
-      color: var(--primary-color);
+      color: var(--mycolor-color);
       margin-right: 12px;
     }
 
@@ -163,8 +162,8 @@
 
       &.p-highlight .p-tabview-nav-link {
         background-color: var(--white);
-        border-color: var(--primary-color);
-        color: var(--primary-color);
+        border-color: var(--mycolor-color);
+        color: var(--mycolor-color);
       }
     }
   }
@@ -216,7 +215,7 @@
       justify-content: center;
       width: 36px;
       height: 36px;
-      background-color: var(--primary-color);
+      background-color: var(--mycolor-color);
       color: var(--white);
       border-radius: 50%;
       font-weight: bold;
@@ -243,7 +242,7 @@
   height: 300px;
 
   i {
-    color: var(--primary-color);
+    color: var(--mycolor-color);
     margin-bottom: 20px;
   }
 
@@ -287,7 +286,7 @@
   }
 
   h3 {
-    color: var(--primary-color);
+    color: var(--mycolor-color);
     margin-bottom: 15px;
     font-weight: 600;
   }

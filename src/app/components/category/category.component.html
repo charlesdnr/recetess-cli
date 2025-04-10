@@ -5,57 +5,75 @@
     </a>
     <h1>{{ category }}</h1>
     @if (subcategory) {
-      <h2>{{ subcategory }}</h2>
+    <h2>{{ subcategory }}</h2>
     }
   </div>
 
   <div class="actions">
     <div class="sort-options">
-      <p-select [options]="sortOptions" [(ngModel)]="sortField" placeholder="Trier par" (onChange)="onSortChange($event)"></p-select>
+      <p-select
+        [options]="sortOptions"
+        [(ngModel)]="sortField"
+        placeholder="Trier par"
+        (onChange)="onSortChange($event)"
+      ></p-select>
     </div>
-    </div>
+  </div>
 
   @if (recipes && recipes.length > 0) {
-    <div class="recipes-grid">
-      @for (recipe of recipes; track recipe.id) {
-        <p-card styleClass="recipe-card">
-          <ng-template pTemplate="header">
-            <div class="recipe-image">
-              <img [src]="getFullImageUrl(recipe.imageUrl)" [alt]="recipe.title">
-              </div>
-          </ng-template>
+  <div class="recipes-grid">
+    @for (recipe of recipes; track recipe.id) {
+    <p-card styleClass="recipe-card">
+      <ng-template pTemplate="header">
+        @if(!getFullImageUrl(recipe.imageUrl) || getFullImageUrl(recipe.imageUrl) != 'assets/images/default-recipe.jpg'){
+        <div class="recipe-image">
+          <img [src]="getFullImageUrl(recipe.imageUrl)" [alt]="recipe.title" />
+        </div>
+        }
+      </ng-template>
 
-          <ng-template pTemplate="title">
-            <h3>{{ recipe.title }}</h3>
-          </ng-template>
+      <ng-template pTemplate="title">
+        <h3>{{ recipe.title }}</h3>
+      </ng-template>
 
-          <ng-template pTemplate="content">
-            <div class="recipe-meta">
-              <span><i class="pi pi-clock"></i> {{ recipe.prepTime + recipe.cookTime }} min</span>
-              <span><i class="pi pi-star"></i> {{ recipe.difficulty }}</span>
-              <span><i class="pi pi-users"></i> {{ recipe.servings }} pers.</span>
-            </div>
-            <div class="recipe-tags">
-              @for (tag of recipe.tags; track $index) {
-                <p-tag [value]="tag" styleClass="recipe-tag"></p-tag>
-              }
-            </div>
-          </ng-template>
+      <ng-template pTemplate="content">
+        <div class="recipe-meta">
+          <span
+            ><i class="pi pi-clock"></i>
+            {{ recipe.prepTime + recipe.cookTime }} min</span
+          >
+          <span><i class="pi pi-star"></i> {{ recipe.difficulty }}</span>
+          <span><i class="pi pi-users"></i> {{ recipe.servings }} pers.</span>
+        </div>
+        <div class="recipe-tags">
+          @for (tag of recipe.tags; track $index) {
+          <p-tag [value]="tag" styleClass="recipe-tag"></p-tag>
+          }
+        </div>
+      </ng-template>
 
-          <ng-template pTemplate="footer">
-            <div class="recipe-footer">
-              <p-button [routerLink]="['/recipe', recipe.id]" label="Voir la recette" icon="pi pi-eye"></p-button>
-            </div>
-          </ng-template>
-        </p-card>
-      }
-    </div>
+      <ng-template pTemplate="footer">
+        <div class="recipe-footer">
+          <p-button
+            [routerLink]="['/recipe', recipe.id]"
+            label="Voir la recette"
+            icon="pi pi-eye"
+          ></p-button>
+        </div>
+      </ng-template>
+    </p-card>
+    }
+  </div>
   } @else {
-    <div class="no-recipes">
-      <i class="pi pi-info-circle"></i>
-      <p>Aucune recette trouvée dans cette catégorie.</p>
-      <p-button [routerLink]="['/new-recipe']" label="Créer une recette" icon="pi pi-plus"></p-button>
-    </div>
+  <div class="no-recipes">
+    <i class="pi pi-info-circle"></i>
+    <p>Aucune recette trouvée dans cette catégorie.</p>
+    <p-button
+      *ngIf="isAdmin$ | async"
+      [routerLink]="['/new-recipe']"
+      label="Créer une recette"
+      icon="pi pi-plus"
+    ></p-button>
+  </div>
   }
-
 </div>

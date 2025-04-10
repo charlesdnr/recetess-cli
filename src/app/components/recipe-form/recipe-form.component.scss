@@ -112,18 +112,6 @@ h3 {
     gap: 10px;
     align-items: flex-start;
 
-    .step-number {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 30px;
-        height: 30px;
-        background-color: var(--primary-color);
-        color: var(--white);
-        border-radius: 50%;
-        font-weight: bold;
-        flex-shrink: 0;
-    }
 
     .step-input {
         flex: 1;
@@ -149,12 +137,6 @@ h3 {
 
 /* Style pour les champs invalides */
 :host ::ng-deep {
-
-    .ng-invalid.ng-dirty,
-    .p-invalid {
-        border-color: var(--primary-color);
-    }
-
     .p-error {
         color: var(--primary-color);
         margin-top: 5px;
@@ -302,5 +284,10 @@ h3 {
     .p-button-text + .p-button {
       margin-left: 0.5rem;
     }
+  }
+}
+::ng-deep {
+  .p-autocomplete .p-textarea, textarea {
+    width: 100%;
   }
 }

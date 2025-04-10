@@ -2,45 +2,69 @@
   <h1 class="page-title">Catégories de Recettes</h1>
 
   @if (isLoading) {
-    <div class="loading-indicator">
-      <i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i> Chargement des catégories...
-    </div>
+  <div class="loading-indicator">
+    <i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i> Chargement des
+    catégories...
+  </div>
   } @else {
-    <div class="categories-list-container">
-      @for (category of allCategories; track category.name) {
-        <div class="category-section"> <p-card styleClass="category-card-fullwidth">
-            <ng-template pTemplate="title">
-              <a [routerLink]="getCategoryLink(category.name)" class="category-title-link">
-                {{ category.name }}
-              </a>
-            </ng-template>
+  <div class="categories-list-container">
+    @for (category of allCategories; track category.name) {
+    <div class="category-section">
+      <p-card styleClass="category-card-fullwidth">
+        <ng-template pTemplate="title">
+          <a
+            [routerLink]="getCategoryLink(category.name)"
+            class="category-title-link"
+          >
+            {{ category.name }}
+          </a>
+        </ng-template>
 
-            <ng-template pTemplate="content">
-              @if (category.subcategories && category.subcategories.length > 0) {
-                <div class="subcategories-list">
-                  <ul>
-                    @for (subcategory of category.subcategories; track subcategory.name) {
-                      <li>
-                        <a [routerLink]="getSubcategoryLink(category.name, subcategory.name)" class="subcategory-link">
-                          <i class="pi pi-angle-right"></i> {{ subcategory.name }}
-                        </a>
-                      </li>
-                    }
-                  </ul>
-                </div>
-              } @else {
-                <div class="no-subcategories-content">
-                  <a [routerLink]="getCategoryLink(category.name)" pButton label="Voir toutes les recettes" icon="pi pi-arrow-right" iconPos="right" class="p-button-sm p-button-text"></a>
-                </div>
+        <ng-template pTemplate="content">
+          @if (category.subcategories && category.subcategories.length > 0) {
+          <div class="subcategories-list">
+            <ul>
+              @for (subcategory of category.subcategories; track
+              subcategory.name) {
+              <li>
+                <a
+                  [routerLink]="
+                    getSubcategoryLink(category.name, subcategory.name)
+                  "
+                  class="subcategory-link"
+                >
+                  <i class="pi pi-angle-right"></i> {{ subcategory.name }}
+                </a>
+              </li>
               }
-            </ng-template>
-             </p-card>
-        </div>
-      }
+            </ul>
+          </div>
 
-      @if (!isLoading && allCategories.length === 0) {
-        <p class="no-categories-message">Aucune catégorie n'est disponible pour le moment.</p>
-      }
+          }
+        </ng-template>
+        <ng-template pTemplate="footer">
+          <div class="no-subcategories-content">
+            <a
+              [routerLink]="getCategoryLink(category.name)"
+              pButton
+              label="Voir toutes les recettes"
+              icon="pi pi-arrow-right"
+              iconPos="right"
+              class="p-button-sm p-button-text"
+            ></a>
+          </div>
+        </ng-template>
+        
+      </p-card>
+
     </div>
+
+    } @if (!isLoading && allCategories.length === 0) {
+    <p class="no-categories-message">
+      Aucune catégorie n'est disponible pour le moment.
+    </p>
+    }
+
+  </div>
   }
 </div>

@@ -12,6 +12,8 @@ import { TagModule } from 'primeng/tag';
 // import { SelectButtonModule } from 'primeng/selectbutton';
 import { SelectModule } from 'primeng/select';
 import { FormsModule } from '@angular/forms';
+import { Observable } from 'rxjs';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-category',
@@ -40,6 +42,7 @@ export class CategoryComponent implements OnInit {
   //   { icon: 'pi pi-th-large', value: 'grid' },
   //   { icon: 'pi pi-list', value: 'list' }
   // ];
+  isAdmin$: Observable<boolean>;
 
   // Options de tri (conservées mais inactives sans logique manuelle)
   sortOptions = [
@@ -53,9 +56,11 @@ export class CategoryComponent implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
-    private recipeService: RecipeService // Injecter
+    private recipeService: RecipeService,
+    public authService: AuthService
   ) {
-     this.backendBaseUrl = this.recipeService.backendBaseUrl; // Assigner l'URL
+    this.isAdmin$ = this.authService.isAdmin$;
+    this.backendBaseUrl = this.recipeService.backendBaseUrl; // Assigner l'URL
   }
 
   ngOnInit(): void {
@@ -72,8 +77,8 @@ export class CategoryComponent implements OnInit {
         next: (loadedRecipes) => {
           console.log('[CategoryComponent] Recipes received:', loadedRecipes);
           this.recipes = loadedRecipes; // Assignation directe
-           // NOTE: Le tri manuel devrait être appliqué ici si nécessaire
-           // this.sortRecipes(); // Appel d'une fonction de tri (à créer)
+          // NOTE: Le tri manuel devrait être appliqué ici si nécessaire
+          // this.sortRecipes(); // Appel d'une fonction de tri (à créer)
           console.log('[CategoryComponent] this.recipes assigned:', this.recipes);
           if (loadedRecipes.length === 0) {
             console.warn('[CategoryComponent] No recipes found.');

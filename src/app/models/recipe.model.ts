@@ -6,7 +6,8 @@ export interface Recipe {
   cookTime: number;
   servings: number;
   difficulty: string;
-  ingredients: string[];
+  ingredients: Ingredient[];
+  instructions: string[];
   steps: string[];
   imageUrl: string;
   tags: string[];
@@ -16,11 +17,17 @@ export interface Recipe {
 }
 
 export interface Category {
+  id?: string;
   name: string;
-  subcategories?: Subcategory[];
+  subcategories: Subcategory[];
+  sortOrder?: number;
 }
-
 export interface Subcategory {
   name: string;
   recipes?: Recipe[];
+}
+export interface Ingredient {
+  name: string;
+  quantity: number | string; // Peut être un nombre ou 'selon goût', etc.
+  unit: string;
 }

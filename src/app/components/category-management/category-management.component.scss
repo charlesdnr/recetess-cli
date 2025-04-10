@@ -1,0 +1,59 @@
+.category-management-container {
+  padding: 1rem;
+}
+
+.loading-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  color: var(--text-color-secondary);
+}
+
+.category-item {
+    .p-panel-header {
+       // Style pour l'entête si besoin
+    }
+    .p-panel-content {
+        padding-top: 0; // Ajuster le padding si nécessaire
+    }
+}
+
+
+.subcategory-list {
+  list-style: none;
+  padding-left: 0;
+  margin-top: 0.5rem;
+  margin-bottom: 1rem; // Espace avant l'ajout
+}
+
+.subcategory-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.3rem 0;
+  border-bottom: 1px solid var(--surface-border);
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  span {
+    flex-grow: 1;
+    margin-right: 0.5rem;
+  }
+
+  button {
+      margin-left: 0.5rem;
+  }
+}
+
+// Assurer que le bouton de suppression dans l'entête du panel est bien stylé
+:host ::ng-deep .p-panel .p-panel-header .p-panel-header-icon.pi-trash {
+    color: var(--red-500); // Ou une autre couleur danger
+    &:hover {
+        color: var(--red-700);
+        background-color: rgba(255, 0, 0, 0.1); // Léger fond rouge au survol
+    }
+}

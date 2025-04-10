@@ -1,6 +1,5 @@
-<!-- components/recipe-form/recipe-form.component.html (CORRECTION AVEC CHIPS) -->
 <p-toast></p-toast>
-<p-confirmDialog></p-confirmDialog>
+<p-confirmDialog header="Confirmation"></p-confirmDialog>
 
 <div class="container">
   <div class="header">
@@ -16,14 +15,17 @@
     </h1>
   </div>
 
-  <div class="loading-container" *ngIf="loading">
-    <i class="pi pi-spin pi-spinner" style="font-size: 3rem"></i>
-    <p>Chargement de la recette...</p>
+  <div class="loading-container text-center p-4" *ngIf="loading">
+    <p-progressSpinner
+      styleClass="w-4rem h-4rem"
+      strokeWidth="8"
+    ></p-progressSpinner>
+    <p class="mt-2">Chargement de la recette...</p>
   </div>
 
   <form [formGroup]="recipeForm" (ngSubmit)="onSubmit()" *ngIf="!loading">
     <p-card>
-      <div class="form-grid">
+      <div class="form-grid grid">
         <div class="form-field col-12">
           <label for="title">Titre de la recette*</label>
           <input
@@ -46,14 +48,19 @@
             >Le titre est obligatoire (min. 3 caractères)</small
           >
         </div>
-        <div class="form-field col-6">
+
+        <div class="form-field col-12 md:col-6">
           <label for="category">Catégorie*</label>
           <p-select
             id="category"
             [options]="categoryOptions"
             formControlName="category"
-            [filter]="true"
             placeholder="Sélectionner une catégorie"
+            optionLabel="label"
+            optionValue="value"
+            [filter]="true"
+            filterBy="label"
+            [showClear]="true"
             [ngClass]="{
               'ng-invalid ng-dirty':
                 recipeForm.get('category')?.invalid &&
@@ -70,35 +77,29 @@
           >
         </div>
 
-        <div class="form-field col-6">
-          <label for="subcategory">Sous-catégorie*</label>
+        <div class="form-field col-12 md:col-6">
+          <label for="subcategory">Sous-catégorie</label>
           <p-select
             id="subcategory"
             [options]="subcategories"
             formControlName="subcategory"
+            placeholder="Sélectionner ou laisser vide"
+            optionLabel="label"
+            optionValue="value"
             [filter]="true"
-            placeholder="Sélectionner une sous-catégorie"
-            [disabled]="subcategories.length === 0"
+            filterBy="label"
+            [showClear]="true"
             [ngClass]="{
               'ng-invalid ng-dirty':
                 recipeForm.get('subcategory')?.invalid &&
-                recipeForm.get('subcategory')?.touched
+                recipeForm.get('subcategory')?.touched &&
+                recipeForm.get('subcategory')?.enabled
             }"
-          >
-          </p-select>
-          <small
-            *ngIf="
-              recipeForm.get('subcategory')?.enabled &&
-              recipeForm.get('subcategory')?.invalid &&
-              recipeForm.get('subcategory')?.touched
-            "
-            class="p-error"
-            >La sous-catégorie est obligatoire</small
-          >
+          ></p-select>
         </div>
 
-        <div class="form-field col-3">
-          <label for="prepTime">Temps de préparation (min)*</label>
+        <div class="form-field col-6 md:col-3">
+          <label for="prepTime">Préparation (min)*</label>
           <p-inputNumber
             id="prepTime"
             formControlName="prepTime"
@@ -116,12 +117,12 @@
               recipeForm.get('prepTime')?.touched
             "
             class="p-error"
-            >Le temps de préparation est obligatoire</small
+            >Obligatoire</small
           >
         </div>
 
-        <div class="form-field col-3">
-          <label for="cookTime">Temps de cuisson (min)*</label>
+        <div class="form-field col-6 md:col-3">
+          <label for="cookTime">Cuisson (min)*</label>
           <p-inputNumber
             id="cookTime"
             formControlName="cookTime"
@@ -139,12 +140,12 @@
               recipeForm.get('cookTime')?.touched
             "
             class="p-error"
-            >Le temps de cuisson est obligatoire</small
+            >Obligatoire</small
           >
         </div>
 
-        <div class="form-field col-3">
-          <label for="servings">Nombre de personnes*</label>
+        <div class="form-field col-6 md:col-3">
+          <label for="servings">Personnes*</label>
           <p-inputNumber
             id="servings"
             formControlName="servings"
@@ -162,17 +163,20 @@
               recipeForm.get('servings')?.touched
             "
             class="p-error"
-            >Le nombre de personnes est obligatoire</small
+            >Obligatoire</small
           >
         </div>
 
-        <div class="form-field col-3">
+        <div class="form-field col-6 md:col-3">
           <label for="difficulty">Difficulté*</label>
           <p-select
             id="difficulty"
             [options]="difficultyOptions"
             formControlName="difficulty"
             placeholder="Sélectionner"
+            optionLabel="label"
+            optionValue="value"
+            [showClear]="true"
             [ngClass]="{
               'ng-invalid ng-dirty':
                 recipeForm.get('difficulty')?.invalid &&
@@ -185,63 +189,74 @@
               recipeForm.get('difficulty')?.touched
             "
             class="p-error"
-            >La difficulté est obligatoire</small
+            >Obligatoire</small
           >
         </div>
 
         <div class="form-field col-12">
-          <label>Image de la recette</label>
+          <label for="description">Description</label>
+          <textarea
+            pTextarea
+            id="description"
+            formControlName="description"
+            [rows]="3"
+            placeholder="Ajouter une courte description de la recette..."
+          ></textarea>
+        </div>
 
-          <div
-            *ngIf="imagePreviewUrl"
-            style="
-              margin-bottom: 10px;
-              border: 1px solid #ddd;
-              padding: 5px;
-              display: inline-block;
-            "
+        <!-- <div class="form-field col-12" >
+          <label for="tags">Tags / Mots-clés</label>
+          <p-autoComplete
+            id="tags"
+            formControlName="tags"
+            [multiple]="true"
+            [suggestions]="filteredTags"
+            (completeMethod)="filterTags($event)"
+            placeholder="Ajouter un tag et appuyer sur Entrée"
+            styleClass="w-full"
+            inputStyleClass="w-full"
+            appendTo="body"
+            [dropdown]="false"
+            [forceSelection]="false"
           >
-            <img
-              [src]="imagePreviewUrl"
-              alt="Aperçu"
-              style="max-width: 200px; max-height: 200px; display: block"
-            />
+            <ng-template pTemplate="chip" let-value>
+              <div class="p-chip p-component">
+                <span class="p-chip-text">{{ value }}</span>
+              </div>
+            </ng-template>
+          </p-autoComplete>
+          <small class="form-help-text"
+            >Appuyez sur Entrée après chaque tag pour l'ajouter.</small
+          >
+        </div> -->
+
+        <div class="form-field col-12">
+          <label>Image de la recette</label>
+          <div *ngIf="imagePreviewUrl" class="image-preview-container">
+            <img [src]="imagePreviewUrl" alt="Aperçu" class="image-preview" />
           </div>
-          <div
-            *ngIf="!imagePreviewUrl"
-            style="margin-bottom: 10px; color: #888"
-          >
+          <div *ngIf="!imagePreviewUrl" class="image-placeholder">
             (Aucune image sélectionnée ou image par défaut)
           </div>
 
           <p-fileUpload
-          name="recipeImage"     mode="advanced"       [auto]="false"        customUpload="true"   (onSelect)="onFileSelect($event)"  (onClear)="selectedImageFile = null; updateImagePreview(initialImageUrl)" [multiple]="false"    accept="image/*"      [maxFileSize]="5000000"    chooseLabel="Choisir"
-          chooseIcon="pi pi-image"
-          cancelLabel="Annuler"
-          cancelIcon="pi pi-times"
-          invalidFileSizeMessageSummary="Taille invalide:"
-          invalidFileSizeMessageDetail="Taille max: 5MB"
-          invalidFileTypeMessageSummary="Type invalide:"
-          invalidFileTypeMessageDetail="Seules les images sont autorisées."
+            name="recipeImage"
+            mode="basic"
+            #fileUploader
+            (onSelect)="onFileSelect($event); fileUploader.clear()"
+            [multiple]="false"
+            accept="image/*"
+            [maxFileSize]="5000000"
+            chooseLabel="Choisir/Changer l'image"
+            chooseIcon="pi pi-image"
+            invalidFileSizeMessageSummary="Taille invalide:"
+            invalidFileSizeMessageDetail="Taille max: 5MB"
+            invalidFileTypeMessageSummary="Type invalide:"
+            invalidFileTypeMessageDetail="Seules les images sont autorisées."
+            styleClass="p-button-sm"
           >
-          <ng-template pTemplate="content" let-files let-clear="clear" let-remove="remove">
-              </ng-template>
-          <ng-template pTemplate="empty">
-              <div style="text-align: center; padding: 1rem; color: #888">
-                  <i class="pi pi-image" style="font-size: 1.2rem"></i>
-                  <p>Glissez-déposez une image ou cliquez sur "Choisir".</p>
-              </div>
-          </ng-template>
-      </p-fileUpload>
-          <small class="form-help-text">Taille max: 5 Mo.</small>
-
-          <div
-            *ngIf="isUploadingOrSaving"
-            style="margin-top: 10px; display: flex; align-items: center"
-          >
-            <i class="pi pi-spin pi-spinner" style="margin-right: 8px"></i>
-            Enregistrement en cours...
-          </div>
+          </p-fileUpload>
+          <small class="form-help-text mt-1">Taille max: 5 Mo.</small>
         </div>
       </div>
 
@@ -250,30 +265,62 @@
       <div class="ingredients-section">
         <h3>Ingrédients*</h3>
         <div formArrayName="ingredients" class="ingredients-list">
-          @for (ingredient of ingredients.controls; track $index) {
-          <div class="ingredient-item">
-            <div class="ingredient-input">
+          @for (ingredientGroup of ingredients.controls; track $index) {
+          <div
+            [formGroupName]="$index"
+            class="ingredient-item grid nogutter align-items-center mb-2"
+          >
+            <div class="col-3 md:col-2">
+              <p-inputNumber
+                placeholder="Qté"
+                formControlName="quantity"
+                [showButtons]="false"
+                [min]="0"
+                size="small"
+                [ngClass]="{
+                  'ng-invalid ng-dirty':
+                    getIngredientGroup($index).get('quantity')?.invalid &&
+                    getIngredientGroup($index).get('quantity')?.touched
+                }"
+              ></p-inputNumber>
+            </div>
+            <div class="col-3 md:col-2">
               <input
                 type="text"
                 pInputText
-                [formControlName]="$index"
-                placeholder="Ingrédient {{ $index + 1 }}"
+                placeholder="Unité"
+                formControlName="unit"
+                class="p-inputtext-sm"
+              />
+            </div>
+            <div class="col-5 md:col-7">
+              <input
+                type="text"
+                pInputText
+                placeholder="Nom de l'ingrédient"
+                formControlName="name"
+                class="p-inputtext-sm"
                 [ngClass]="{
                   'ng-invalid ng-dirty':
-                    ingredient.invalid && ingredient.touched
+                    getIngredientGroup($index).get('name')?.invalid &&
+                    getIngredientGroup($index).get('name')?.touched
                 }"
               />
             </div>
-            <div class="ingredient-actions">
+            <div class="col-1 md:col-1 flex justify-content-end">
               <button
                 type="button"
                 pButton
                 icon="pi pi-trash"
-                class="p-button-danger p-button-sm"
+                class="p-button-danger p-button-text p-button-sm"
                 (click)="removeIngredient($index)"
+                pTooltip="Supprimer cet ingrédient"
+                tooltipPosition="top"
               ></button>
             </div>
           </div>
+          } @empty {
+          <p>Ajoutez votre premier ingrédient.</p>
           }
         </div>
         <button
@@ -281,7 +328,7 @@
           pButton
           icon="pi pi-plus"
           label="Ajouter un ingrédient"
-          class="p-button-secondary p-button-sm"
+          class="p-button-secondary p-button-sm mt-2"
           (click)="addIngredient()"
         ></button>
       </div>
@@ -290,35 +337,78 @@
 
       <div class="steps-section">
         <h3>Étapes de préparation*</h3>
-        <div formArrayName="steps" class="steps-list">
-          @for (step of steps.controls; track $index) {
-            <div class="step-item">
-              <div class="step-number">{{ $index + 1 }}</div>
-              <div class="step-input">
-                <textarea pInputTextarea [formControlName]="$index" placeholder="Étape {{ $index + 1 }}" [rows]="2" [ngClass]="{'ng-invalid ng-dirty': step.invalid && step.touched}"></textarea>
-              </div>
-              <div class="step-actions">
-                 <button type="button" pButton icon="pi pi-trash" class="p-button-danger p-button-sm" (click)="removeStep($index)"></button>
-                 </div>
+        <div formArrayName="instructions" class="steps-list">
+          @for (stepControl of instructions.controls; track $index; let idx =
+          $index) {
+          <div class="step-item grid nogutter align-items-start mb-2">
+            <div
+              class="step-number col-fixed pr-2"
+              style="width: 40px; text-align: right"
+            >
+              {{ idx + 1 }}.
             </div>
+            <div class="step-input col">
+              <textarea
+                pTextarea
+                [formControlName]="$index"
+                placeholder="Décrire l'étape {{ idx + 1 }}"
+                [rows]="2"
+                class="w-full p-inputtext-sm"
+                [ngClass]="{
+                  'ng-invalid ng-dirty':
+                    stepControl.invalid && stepControl.touched
+                }"
+              ></textarea>
+            </div>
+            <div class="step-actions col-fixed pl-2">
+              <button
+                type="button"
+                pButton
+                icon="pi pi-trash"
+                class="p-button-danger p-button-text p-button-sm"
+                (click)="removeInstruction($index)"
+                pTooltip="Supprimer cette étape"
+                tooltipPosition="top"
+              ></button>
+            </div>
+          </div>
+          } @empty {
+          <p>Ajoutez votre première étape.</p>
           }
         </div>
-        <button type="button" pButton icon="pi pi-plus" label="Ajouter une étape" class="p-button-secondary p-button-sm" (click)="addStep()"></button>
+        <button
+          type="button"
+          pButton
+          icon="pi pi-plus"
+          label="Ajouter une étape"
+          class="p-button-secondary p-button-sm mt-2"
+          (click)="addInstruction()"
+        ></button>
       </div>
 
-      <div class="form-actions">
+      <p-divider></p-divider>
+
+      <div
+        class="form-actions flex justify-content-end align-items-center mt-4"
+      >
+        <div *ngIf="isUploadingOrSaving" class="mr-3 flex align-items-center">
+          <i class="pi pi-spin pi-spinner mr-2"></i>
+          <span>Enregistrement en cours...</span>
+        </div>
         <p-button
           type="button"
           label="Annuler"
           icon="pi pi-times"
-          styleClass="p-button-text"
+          styleClass="p-button-text mr-2"
           (click)="cancel()"
+          [disabled]="isUploadingOrSaving"
         ></p-button>
         <p-button
           type="submit"
-          label="Enregistrer"
+          label="{{ isEditMode ? 'Mettre à jour' : 'Enregistrer' }}"
           icon="pi pi-check"
-          [disabled]="recipeForm.invalid"
+          [disabled]="recipeForm.invalid || isUploadingOrSaving"
+          [loading]="isUploadingOrSaving"
         ></p-button>
       </div>
     </p-card>

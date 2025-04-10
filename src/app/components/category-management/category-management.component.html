@@ -1,0 +1,118 @@
+<p-toast></p-toast>
+<p-confirmDialog [style]="{ width: '450px' }"></p-confirmDialog>
+
+<div class="category-management-container">
+  <h2>Gestion des Catégories et Sous-catégories</h2>
+
+  <div *ngIf="isLoading" class="loading-indicator">
+    <p-progressSpinner
+      styleClass="w-4rem h-4rem"
+      strokeWidth="8"
+    ></p-progressSpinner>
+    <p>Chargement...</p>
+  </div>
+
+  <p-message
+    *ngIf="errorLoading && !isLoading"
+    severity="error"
+    [text]="errorLoading"
+  ></p-message>
+
+  <div *ngIf="!isLoading && !errorLoading" class="card p-fluid mb-4">
+    <h3>Ajouter une nouvelle catégorie</h3>
+    <p-inputGroup>
+      <input
+        type="text"
+        pInputText
+        placeholder="Nom de la nouvelle catégorie"
+        [(ngModel)]="newCategoryName"
+        (keyup.enter)="onAddCategory()"
+      />
+      <button
+        pButton
+        type="button"
+        icon="pi pi-plus"
+        label="Ajouter"
+        (click)="onAddCategory()"
+        [disabled]="!newCategoryName.trim()"
+      ></button>
+    </p-inputGroup>
+  </div>
+
+  <div *ngIf="!isLoading && !errorLoading && categories.length > 0">
+    <h3>Catégories existantes</h3>
+    <div *ngFor="let category of categories" class="category-item mb-3">
+      <p-panel *ngIf="category.id" [header]="category.name" [toggleable]="true">
+        <ng-template pTemplate="icons">
+          <button
+            pButton
+            class="p-panel-header-icon p-link mr-2"
+            icon="pi pi-trash"
+            (click)="
+              confirmDeleteCategory(category.id); $event.stopPropagation()
+            "
+            pTooltip="Supprimer la catégorie (si vide)"
+            tooltipPosition="top"
+          ></button>
+        </ng-template>
+
+        <div class="p-3">
+          <h4>Sous-catégories</h4>
+          <ul
+            *ngIf="
+              category.subcategories && category.subcategories.length > 0;
+              else noSubcategories
+            "
+            class="subcategory-list"
+          >
+            <li
+              *ngFor="let sub of category.subcategories"
+              class="subcategory-item"
+            >
+              <span>{{ sub.name }}</span>
+              <button
+                pButton
+                icon="pi pi-trash"
+                class="p-button-sm p-button-danger p-button-text"
+                (click)="confirmDeleteSubcategory(category.id, sub.name)"
+                pTooltip="Supprimer la sous-catégorie (si vide)"
+                tooltipPosition="top"
+              ></button>
+            </li>
+          </ul>
+          <ng-template #noSubcategories>
+            <p><em>Aucune sous-catégorie pour le moment.</em></p>
+          </ng-template>
+
+          <div class="mt-3">
+            <h5>Ajouter une sous-catégorie à "{{ category.name }}"</h5>
+            <p-inputGroup>
+              <input
+                type="text"
+                pInputText
+                placeholder="Nom de la nouvelle sous-catégorie"
+                [(ngModel)]="newSubcategoryNames[category.id]"
+                (keyup.enter)="onAddSubcategory(category.id)"
+              />
+              <button
+                pButton
+                type="button"
+                icon="pi pi-plus"
+                label="Ajouter"
+                class="p-button-sm"
+                (click)="onAddSubcategory(category.id)"
+                [disabled]="!newSubcategoryNames[category.id].trim()"
+              ></button>
+            </p-inputGroup>
+          </div>
+        </div>
+      </p-panel>
+    </div>
+  </div>
+  <div
+    *ngIf="!isLoading && !errorLoading && categories.length === 0"
+    class="text-center mt-4"
+  >
+    <p>Aucune catégorie n'a été créée pour le moment.</p>
+  </div>
+</div>

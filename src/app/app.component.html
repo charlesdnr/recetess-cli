@@ -1,19 +1,29 @@
-<!-- app.component.html (VERSION CORRIGÉE) -->
 <div class="app-container">
+  <p-toast></p-toast>
+
   <header class="app-header">
     <div class="header-content">
       <div class="logo" routerLink="/">Les Recettes de Camille</div>
       <nav class="main-nav">
         <p-menubar [model]="items">
           <ng-template pTemplate="end">
-            <div class="search-container">
-              <p-inputgroup>
-                <p-inputgroup-addon>
-                    <i class="pi pi-search"></i>
-                </p-inputgroup-addon>
-                <input pInputText type="text" placeholder="Rechercher une recette" />
-            </p-inputgroup>
+            <div class="header-end-section">
+                <div class="search-container">
+                    <p-inputgroup>
+                        <p-inputgroup-addon>
+                            <i class="pi pi-search"></i>
+                        </p-inputgroup-addon>
+                        <input pInputText type="text" placeholder="Rechercher une recette" />
+                    </p-inputgroup>
+                </div>
 
+                <div class="auth-buttons ml-3"> <ng-container *ngIf="(isAdmin$ | async); else loginButton">
+                        <p-button  label="Logout Admin" icon="pi pi-sign-out" styleClass="p-button-sm p-button-secondary" (click)="logout()"></p-button>
+                    </ng-container>
+                    <ng-template #loginButton>
+                        <p-button label="Admin Login" icon="pi pi-user" styleClass="p-button-sm p-button-secondary" (click)="showLoginDialog()"></p-button>
+                    </ng-template>
+                </div>
             </div>
           </ng-template>
         </p-menubar>
@@ -27,7 +37,21 @@
 
   <footer class="app-footer">
     <div class="footer-content">
-      <p>&copy; {{ 2025 }} Les Recettes de Camille - Tous droits réservés</p>
+      <p>&copy; {{ currentYear }} Les Recettes de Camille - Tous droits réservés</p>
     </div>
   </footer>
+
+  <p-dialog header="Connexion Administrateur" [(visible)]="displayLoginDialog" [modal]="true" [style]="{width: '300px'}" [draggable]="false" [resizable]="false" (onHide)="adminPasswordInput = ''">
+      <div class="p-fluid">
+          <div class="field">
+              <label for="adminPassword">Mot de passe</label>
+              <p-password id="adminPassword" [(ngModel)]="adminPasswordInput" [feedback]="false" [toggleMask]="true" (keyup.enter)="attemptLogin()"></p-password>
+          </div>
+      </div>
+      <ng-template pTemplate="footer">
+          <p-button label="Annuler" icon="pi pi-times" styleClass="p-button-text" (click)="displayLoginDialog=false"></p-button>
+          <p-button label="Connexion" icon="pi pi-check" (click)="attemptLogin()" [loading]="loginLoading" [disabled]="!adminPasswordInput"></p-button>
+      </ng-template>
+  </p-dialog>
+
 </div>

@@ -1,32 +1,31 @@
 import { Routes } from '@angular/router';
+import { HomeComponent } from './components/home/home.component';
+import { CategoryComponent } from './components/category/category.component';
+import { RecipeDetailComponent } from './components/recipe-detail/recipe-detail.component';
+import { RecipeFormComponent } from './components/recipe-form/recipe-form.component';
+import { CategoryManagementComponent } from './components/category-management/category-management.component';
+import { authGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
-  { 
-    path: '', 
-    loadComponent: () => import('./components/home/home.component').then(m => m.HomeComponent) 
-  },
-  { 
-    path: 'category/:category', 
-    loadComponent: () => import('./components/category/category.component').then(m => m.CategoryComponent) 
-  },
-  { 
-    path: 'category/:category/:subcategory', 
-    loadComponent: () => import('./components/category/category.component').then(m => m.CategoryComponent) 
-  },
-  { 
-    path: 'recipe/:id', 
-    loadComponent: () => import('./components/recipe-detail/recipe-detail.component').then(m => m.RecipeDetailComponent) 
-  },
-  { 
-    path: 'new-recipe', 
-    loadComponent: () => import('./components/recipe-form/recipe-form.component').then(m => m.RecipeFormComponent) 
-  },
-  { 
-    path: 'edit-recipe/:id', 
-    loadComponent: () => import('./components/recipe-form/recipe-form.component').then(m => m.RecipeFormComponent) 
-  },
-  { 
-    path: '**', 
-    redirectTo: '' 
-  }
+    { path: '', component: HomeComponent, pathMatch: 'full' },
+    { path: 'category/:category', component: CategoryComponent },
+    { path: 'category/:category/:subcategory', component: CategoryComponent },
+    { path: 'recipe/:id', component: RecipeDetailComponent },
+    // Routes protégées
+    {
+        path: 'new-recipe',
+        component: RecipeFormComponent,
+        canActivate: [authGuard]
+    },
+    {
+        path: 'edit-recipe/:id',
+        component: RecipeFormComponent,
+        canActivate: [authGuard]
+    },
+    {
+        path: 'manage-categories',
+        component: CategoryManagementComponent,
+        canActivate: [authGuard]
+    },
+    { path: '**', redirectTo: '' }
 ];

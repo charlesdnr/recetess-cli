@@ -11,7 +11,7 @@ import { environment } from '../../environments/environment';
 })
 export class RecipeService {
   // URL de l'API backend
-  readonly backendBaseUrl = environment.port; // URL de base du backend
+  readonly backendBaseUrl = environment.endpoint; // URL de base du backend
   private apiUrl = `${this.backendBaseUrl}/api/recipes`;
   private uploadUrl = `${this.backendBaseUrl}/api/upload/image`;
 

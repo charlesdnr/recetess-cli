@@ -1,183 +1,181 @@
 /* components/recipe-form/recipe-form.component.scss */
 .header {
-    margin-bottom: 30px;
+  margin-bottom: 30px;
 
-    h1 {
-        margin-bottom: 10px;
-        color: var(--dark-color);
+  h1 {
+    margin-bottom: 10px;
+    color: var(--dark-color);
+  }
+
+  .back-link {
+    display: inline-block;
+    margin-bottom: 20px;
+    color: var(--secondary-color);
+    text-decoration: none;
+
+    i {
+      margin-right: 5px;
     }
 
-    .back-link {
-        display: inline-block;
-        margin-bottom: 20px;
-        color: var(--secondary-color);
-        text-decoration: none;
-
-        i {
-            margin-right: 5px;
-        }
-
-        &:hover {
-            color: var(--primary-color);
-            text-decoration: underline;
-        }
+    &:hover {
+      color: var(--primary-color);
+      text-decoration: underline;
     }
+  }
 }
 
 .loading-container {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    height: 300px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 300px;
 
-    i {
-        color: var(--primary-color);
-        margin-bottom: 20px;
-    }
+  i {
+    color: var(--primary-color);
+    margin-bottom: 20px;
+  }
 
-    p {
-        font-size: 1.2rem;
-        color: var(--dark-color);
-    }
+  p {
+    font-size: 1.2rem;
+    color: var(--dark-color);
+  }
 }
 
 .form-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
 
-    .col-12 {
-        width: 100%;
-    }
+  .col-12 {
+    width: 100%;
+  }
 
-    .col-6 {
-        width: calc(50% - 10px);
-    }
+  .col-6 {
+    width: calc(50% - 10px);
+  }
 
-    .col-3 {
-        width: calc(25% - 15px);
-    }
+  .col-3 {
+    width: calc(25% - 15px);
+  }
 }
 
 .form-field {
-    display: flex;
-    flex-direction: column;
-    margin-bottom: 10px;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 10px;
 
-    label {
-        margin-bottom: 8px;
-        color: var(--dark-color);
-        font-weight: 500;
-    }
+  label {
+    margin-bottom: 8px;
+    color: var(--dark-color);
+    font-weight: 500;
+  }
 
-    small.form-help-text {
-        margin-top: 5px;
-        color: var(--secondary-color);
-        font-size: 0.8rem;
-    }
+  small.form-help-text {
+    margin-top: 5px;
+    color: var(--secondary-color);
+    font-size: 0.8rem;
+  }
 
-    :host ::ng-deep .p-dropdown,
-    :host ::ng-deep .p-inputnumber {
-        width: 100%;
-    }
+  :host ::ng-deep .p-dropdown,
+  :host ::ng-deep .p-inputnumber {
+    width: 100%;
+  }
 }
 
 h3 {
-    margin-top: 20px;
-    margin-bottom: 20px;
-    color: var(--primary-color);
-    font-size: 1.4rem;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  color: var(--primary-color);
+  font-size: 1.4rem;
 }
 
 .ingredients-list,
 .steps-list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
 }
 
 .ingredient-item {
-    display: flex;
-    gap: 10px;
+  display: flex;
+  gap: 10px;
 
-    .ingredient-input {
-        flex: 1;
-    }
+  .ingredient-input {
+    flex: 1;
+  }
 }
 
 .step-item {
-    display: flex;
-    gap: 10px;
-    align-items: flex-start;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
 
-
-    .step-input {
-        flex: 1;
-    }
+  .step-input {
+    flex: 1;
+  }
 }
 
 .form-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    margin-top: 30px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 30px;
 }
 
 @media (max-width: 768px) {
-    .form-grid {
-
-        .col-6,
-        .col-3 {
-            width: 100%;
-        }
+  .form-grid {
+    .col-6,
+    .col-3 {
+      width: 100%;
     }
+  }
 }
 
 /* Style pour les champs invalides */
 :host ::ng-deep {
-    .p-error {
-        color: var(--primary-color);
-        margin-top: 5px;
+  .p-error {
+    color: var(--primary-color);
+    margin-top: 5px;
+  }
+
+  .p-card {
+    .p-card-content {
+      padding: 1.5rem;
     }
+  }
 
-    .p-card {
-        .p-card-content {
-            padding: 1.5rem;
-        }
+  .p-button-secondary {
+    background-color: var(--secondary-color);
+    border-color: var(--secondary-color);
+
+    &:hover {
+      background-color: var(--dark-color) !important;
+      border-color: var(--dark-color) !important;
     }
+  }
 
-    .p-button-secondary {
-        background-color: var(--secondary-color);
-        border-color: var(--secondary-color);
+  .p-button-danger {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
 
-        &:hover {
-            background-color: var(--dark-color) !important;
-            border-color: var(--dark-color) !important;
-        }
+    &:hover {
+      background-color: #d04e5c !important;
+      border-color: #d04e5c !important;
     }
+  }
 
-    .p-button-danger {
-        background-color: var(--primary-color);
-        border-color: var(--primary-color);
+  .p-fileupload-buttonbar {
+    background-color: transparent;
+    border: none;
+    padding: 0;
+  }
 
-        &:hover {
-            background-color: #d04e5c !important;
-            border-color: #d04e5c !important;
-        }
-    }
-
-    .p-fileupload-buttonbar {
-        background-color: transparent;
-        border: none;
-        padding: 0;
-    }
-
-    .p-button-sm {
-        font-size: 0.875rem;
-        padding: 0.4rem 0.8rem;
-    }
+  .p-button-sm {
+    font-size: 0.875rem;
+    padding: 0.4rem 0.8rem;
+  }
 }
 /* Styles additionnels pour p-chips dans recipe-form.component.scss */
 
@@ -240,11 +238,15 @@ h3 {
     }
   }
 
-  .p-inputtext, .p-inputtextarea, .p-inputnumber, .p-select {
+  .p-inputtext,
+  .p-inputtextarea,
+  .p-inputnumber,
+  .p-select {
     width: 100%;
   }
 
-  .ingredient-item, .step-item {
+  .ingredient-item,
+  .step-item {
     transition: all 0.3s ease;
 
     &:hover {
@@ -287,7 +289,92 @@ h3 {
   }
 }
 ::ng-deep {
-  .p-autocomplete .p-textarea, textarea {
+  .p-autocomplete .p-textarea,
+  textarea {
     width: 100%;
+  }
+}
+
+:host ::ng-deep {
+  .recipe-fileupload {
+    .p-fileupload-buttonbar {
+      background-color: var(
+        --surface-100,
+        #f8f9fa
+      ); // Fond légèrement différent pour la barre de boutons
+      border: 1px solid var(--surface-border, #dee2e6);
+      border-bottom: none;
+      border-radius: var(--border-radius) var(--border-radius) 0 0;
+      padding: 1rem;
+    }
+
+    .p-fileupload-content {
+      background-color: var(--surface-b, #ffffff);
+      border: 1px solid var(--surface-border, #dee2e6);
+      border-top: none; // La barre de bouton a déjà la bordure haute
+      border-radius: 0 0 var(--border-radius) var(--border-radius);
+      padding: 1.5rem; // Espace intérieur
+      min-height: 150px; // Hauteur minimale pour la zone de contenu
+
+      h5 {
+        margin-top: 0;
+        margin-bottom: 1rem;
+        font-weight: 600;
+        color: var(
+          --primary-color
+        ); // Utilise la couleur primaire pour le titre
+      }
+    }
+
+    // Style pour la carte de fichier individuel
+    .p-fileupload-file-card {
+      border: 1px solid var(--surface-d, #e9ecef);
+      padding: 1rem;
+      border-radius: var(--border-radius);
+      background-color: var(
+        --surface-a,
+        #f8f9fa
+      ); // Fond léger pour la carte fichier
+
+      img {
+        object-fit: cover; // Mieux pour les aperçus
+        border-radius: var(--border-radius);
+        margin-bottom: 0.5rem;
+      }
+
+      span.font-semibold {
+        display: block; // Assure qu'il prend la largeur
+        max-width: 150px; // Limite la largeur du nom de fichier
+      }
+
+      p-badge {
+        margin-top: 0.5rem;
+      }
+
+      p-button {
+        margin-top: 0.75rem;
+      }
+    }
+
+    // Style pour la zone vide
+    .p-fileupload-empty {
+      padding: 2rem;
+      border: 1px dashed var(--surface-border, #dee2e6);
+      border-radius: 0 0 var(--border-radius) var(--border-radius);
+      background-color: var(--surface-a, #f8f9fa);
+
+      i {
+        color: var(--secondary-color); // Icône dans la couleur secondaire
+      }
+      p {
+        color: var(--text-color-secondary);
+      }
+    }
+
+    // Ajustements des boutons dans le header
+    .p-fileupload-header .p-button {
+      min-width: auto; // Permet aux boutons d'être plus petits
+      padding: 0.5rem 1rem; // Ajuste le padding
+    }
   }
 }

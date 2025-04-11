@@ -173,17 +173,16 @@ export class RecipeDetailComponent implements OnInit {
     this.showPrintDialog = false;
   }
 
-  // --- CORRECTION ICI ---
   getFullImageUrl(imageUrl: string | undefined): string {
-    const defaultImg = 'assets/images/default-recipe.jpg'; // Chemin local pour l'image par défaut DANS Angular
+    const defaultImg = 'assets/images/default-recipe.jpg'; // Chemin local
 
-    // Si imageUrl existe et semble être une URL Firebase Storage valide
-    if (imageUrl && imageUrl.startsWith('https://storage.googleapis.com/')) {
-      return imageUrl; // Retourner l'URL Firebase directement
+    if (imageUrl && imageUrl.startsWith('https://res.cloudinary.com/')) {
+      // Si c'est une URL Cloudinary valide, on la retourne directement
+      return imageUrl;
     }
 
-    // Sinon, retourner l'image par défaut locale
+    // Si imageUrl est vide, null, undefined, ou ne semble pas être une URL Cloudinary,
+    // on retourne l'image par défaut locale.
     return defaultImg;
   }
-  // --- FIN CORRECTION ---
 }

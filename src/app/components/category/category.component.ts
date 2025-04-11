@@ -83,8 +83,6 @@ export class CategoryComponent implements OnInit {
       this.category.set(categoryValue);
       this.subcategory.set(subcategoryValue);
 
-      console.log(`[CategoryComponent] Category: ${this.category()}, Subcategory: ${this.subcategory()}`);
-
       // Use the signal values directly
       const loadRecipesFn = subcategoryValue
         ? this.recipeService.getRecipesBySubcategory(categoryValue, subcategoryValue)
@@ -100,10 +98,12 @@ export class CategoryComponent implements OnInit {
   }
 
   getFullImageUrl(imageUrl: string | undefined): string {
-    const defaultImg = 'assets/images/default-recipe.jpg';
-    if (!imageUrl || imageUrl === defaultImg || !imageUrl.startsWith('/uploads')) {
-      return defaultImg;
+    const defaultImg = 'assets/images/default-recipe.jpg'; // Chemin local
+
+    if (imageUrl && imageUrl.startsWith('https://res.cloudinary.com/')) {
+      // Si c'est une URL Cloudinary valide, on la retourne directement
+      return imageUrl;
     }
-    return `${this.backendBaseUrl}${imageUrl}`;
+    return defaultImg;
   }
 }

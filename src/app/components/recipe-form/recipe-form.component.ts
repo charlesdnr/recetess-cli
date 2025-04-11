@@ -1,42 +1,48 @@
-import { Component, OnInit } from '@angular/core';
+// src/app/components/recipe-form/recipe-form.component.ts
+import {
+  Component,
+  OnInit,
+  inject, // Use inject
+  signal, // Use signal
+  ChangeDetectionStrategy, // Use OnPush
+  computed // Optional: for derived state
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import {
-  FormsModule, // Garder si d'autres ngModel sont utilisés (mais pas pour les tags)
+  FormsModule,
   ReactiveFormsModule,
   FormBuilder,
   FormGroup,
   FormArray,
   Validators,
-  FormControl // Importer FormControl explicitement
+  FormControl
 } from '@angular/forms';
-// !! Assurez-vous que le modèle Recipe et Ingredient sont corrects !!
 import { Category, Recipe, Ingredient } from '../../models/recipe.model';
 import { RecipeService } from '../../services/recipe.service';
 
-// Imports PrimeNG
+// PrimeNG Imports (unchanged)
 import { CardModule } from 'primeng/card';
 import { InputTextModule } from 'primeng/inputtext';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { TextareaModule } from 'primeng/textarea';
 import { SelectModule } from 'primeng/select';
-import { FileUploadModule } from 'primeng/fileupload';
 import { ButtonModule } from 'primeng/button';
 import { DividerModule } from 'primeng/divider';
-// import { ChipModule } from 'primeng/chip'; // <-- SUPPRIMER ChipModule
-import { AutoCompleteModule } from 'primeng/autocomplete'; // <-- AJOUTER AutoCompleteModule
+import { AutoCompleteModule } from 'primeng/autocomplete';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 import { MessagesModule } from 'primeng/messages';
 import { MessageModule } from 'primeng/message';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
-import { TooltipModule } from 'primeng/tooltip';
 import { InputGroupModule } from 'primeng/inputgroup';
 import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
+import { TooltipModule } from 'primeng/tooltip';
+import { BadgeModule } from 'primeng/badge';
+import { ImageUploadComponent } from '../image-upload/image-upload.component';
 
-import { Observable, of, throwError } from 'rxjs';
-import { switchMap, finalize, catchError } from 'rxjs/operators';
+import { lastValueFrom } from 'rxjs'; // Import lastValueFrom
 
 @Component({
   selector: 'app-recipe-form',
@@ -44,18 +50,17 @@ import { switchMap, finalize, catchError } from 'rxjs/operators';
   imports: [
     CommonModule,
     FormsModule,
-    ReactiveFormsModule, // Pour FormGroup, FormControlName etc.
+    ReactiveFormsModule,
     RouterLink,
     CardModule,
     InputTextModule,
     InputNumberModule,
     TextareaModule,
     SelectModule,
-    FileUploadModule,
     ButtonModule,
     DividerModule,
-    // ChipModule, // <-- SUPPRIMÉ
-    AutoCompleteModule, // <-- AJOUTÉ
+    BadgeModule,
+    AutoCompleteModule,
     ToastModule,
     MessagesModule,
     MessageModule,
@@ -63,18 +68,40 @@ import { switchMap, finalize, catchError } from 'rxjs/operators';
     ProgressSpinnerModule,
     TooltipModule,
     InputGroupModule,
-    InputGroupAddonModule
+    InputGroupAddonModule,
+    ImageUploadComponent
   ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './recipe-form.component.html',
   styleUrls: ['./recipe-form.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush // Enable OnPush
 })
 export class RecipeFormComponent implements OnInit {
+
+  // --- Injected Services ---
+  private fb = inject(FormBuilder);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private recipeService = inject(RecipeService);
+  private messageService = inject(MessageService);
+  private confirmationService = inject(ConfirmationService);
+  // No ChangeDetectorRef needed usually
+
+  // --- Form Definition (remains ReactiveFormsModule) ---
   recipeForm!: FormGroup;
-  recipeId: string = '';
-  isEditMode: boolean = false;
+
+  // --- State using Signals ---
+  recipeId = signal<string>('');
+  isEditMode = signal<boolean>(false);
+  loading = signal<boolean>(false);
+  isUploadingOrSaving = signal<boolean>(false);
+  loadedRecipeImageUrl = signal<string | null>(null); // Store initially loaded URL
+  selectedImageFile = signal<File | null>(null); // Store the selected file
+  // -------------------------
+
+  // --- Data for Selects (can remain simple arrays) ---
   categories: Category[] = [];
-  categoryOptions: {label: string, value: string}[] = [];
+  categoryOptions: { label: string, value: string }[] = [];
   subcategories: { label: string; value: string }[] = [];
   difficultyOptions = [
     { label: 'Très facile', value: 'Très facile' },
@@ -82,131 +109,117 @@ export class RecipeFormComponent implements OnInit {
     { label: 'Moyen', value: 'Moyen' },
     { label: 'Difficile', value: 'Difficile' },
   ];
-  loading: boolean = false;
-
-  // // Pour les tags (géré avec ngModel sur p-chips) <-- SUPPRIMER cette ligne
-  // recipeTags: string[] = []; <-- SUPPRIMER cette ligne
-
-  selectedImageFile: File | null = null;
-  imagePreviewUrl: string | ArrayBuffer | null = null;
-  isUploadingOrSaving: boolean = false;
-  initialImageUrl: string = 'assets/images/default-recipe.jpg';
-
-  // Pour p-autoComplete - suggestions simples basées sur ce qui est déjà entré
   filteredTags: string[] = [];
+  // ---------------------------------------------------
 
-  constructor(
-    private fb: FormBuilder,
-    private route: ActivatedRoute,
-    private router: Router,
-    private recipeService: RecipeService,
-    private messageService: MessageService,
-    private confirmationService: ConfirmationService
-  ) {}
+  // Computed signal for the initial image URL passed to the child
+  // It prioritizes the URL from the loaded recipe if available, otherwise default
+  initialImageUrlForChild = computed(() => this.loadedRecipeImageUrl() || 'assets/images/default-recipe.jpg');
+
 
   ngOnInit(): void {
     this.initForm();
-    this.loadCategories();
+    this.loadCategories(); // Load categories async
 
-    // ... (le reste de ngOnInit reste identique) ...
-     this.route.paramMap.pipe(
-      switchMap(params => {
-          this.recipeId = params.get('id') || '';
-          if (this.recipeId) {
-              this.isEditMode = true;
-              this.loading = true;
-              return this.recipeService.getRecipe(this.recipeId);
+    // --- Load Recipe Data ---
+    this.route.paramMap.subscribe(async params => { // Keep subscribe for paramMap or use route signals if available
+      const id = params.get('id') || '';
+      this.recipeId.set(id);
+      this.isEditMode.set(!!id);
+
+      if (this.isEditMode()) {
+        this.loading.set(true);
+        try {
+          // Use lastValueFrom for async/await style fetching
+          const recipe = await lastValueFrom(this.recipeService.getRecipe(id));
+          if (recipe) {
+            this.populateForm(recipe);
           } else {
-              this.isEditMode = false;
-              return of(null);
+             this.messageService.add({ severity: 'error', summary: 'Erreur', detail: 'Recette non trouvée.' });
+             this.router.navigate(['/']); // Redirect if not found
           }
-      })
-    ).subscribe({
-        next: recipe => {
-            if (this.isEditMode && recipe) {
-                this.populateForm(recipe);
-            }
-             // Le loading est désactivé dans populateForm ou ici si nouvelle recette
-             if (!this.isEditMode) {
-                 this.loading = false;
-            }
-        },
-        error: err => {
-            console.error("Error loading recipe for edit:", err);
-            this.loading = false;
-            this.messageService.add({severity:'error', summary: 'Erreur', detail: 'Impossible de charger la recette à modifier.'});
-            this.router.navigate(['/']); // Rediriger si erreur de chargement
+        } catch (err) {
+          console.error("Error loading recipe for edit:", err);
+          this.messageService.add({ severity: 'error', summary: 'Erreur', detail: 'Impossible de charger la recette.' });
+          this.router.navigate(['/']); // Redirect on error
+        } finally {
+          this.loading.set(false);
         }
+      } else {
+         // Reset potentially loaded URL if navigating from edit to new
+         this.loadedRecipeImageUrl.set(null);
+         this.selectedImageFile.set(null); // Ensure file signal is reset too
+         // Form is already initialized, no loading needed
+      }
+    });
+
+    // --- Category -> Subcategory Logic (keep valueChanges or use effect) ---
+    // Using valueChanges is often fine with forms
+    this.recipeForm.get('category')?.valueChanges.subscribe((categoryName) => {
+      this.updateSubcategories(categoryName);
+      // Ensure subcategory value is reset if category changes and it's no longer valid
+      if (!this.subcategories.some(sub => sub.value === this.recipeForm.get('subcategory')?.value)) {
+          this.recipeForm.get('subcategory')?.setValue('', { emitEvent: false });
+      }
     });
   }
 
-  // Créer un FormGroup pour un ingrédient individuel
-  createIngredientGroup(ingredient: Ingredient | null = null): FormGroup {
-    return this.fb.group({
-      quantity: [ingredient?.quantity ?? ''],
-      unit: [ingredient?.unit ?? ''],
-      name: [ingredient?.name ?? '', Validators.required]
-    });
-  }
+  // initForm, createIngredientGroup, ingredients getter, add/remove Ingredient/Instruction remain largely the same
 
   initForm(): void {
     this.recipeForm = this.fb.group({
       title: ['', [Validators.required, Validators.minLength(3)]],
       description: [''],
       category: ['', Validators.required],
-      subcategory: [{ value: '', disabled: true }, Validators.required], // Garder la logique d'activation/désactivation
+      subcategory: [{ value: '', disabled: true }, Validators.required],
       prepTime: [null, [Validators.required, Validators.min(1)]],
       cookTime: [null, [Validators.required, Validators.min(0)]],
       servings: [null, [Validators.required, Validators.min(1)]],
       difficulty: ['', Validators.required],
       ingredients: this.fb.array([this.createIngredientGroup()], Validators.required),
       instructions: this.fb.array([this.fb.control('', Validators.required)], Validators.required),
-      imageUrl: [this.initialImageUrl],
+      imageUrl: [null as string | null], // Stores the *final* URL after potential upload/clear
       tags: [[]],
     });
-
-    console.log(this.recipeForm)
-
-    // Surveiller les changements de catégorie
-    this.recipeForm.get('category')?.valueChanges.subscribe((categoryName) => {
-      this.updateSubcategories(categoryName);
-    });
   }
+
+   createIngredientGroup(ingredient: Ingredient | null = null): FormGroup {
+     return this.fb.group({
+       quantity: [ingredient?.quantity ?? ''],
+       unit: [ingredient?.unit ?? ''],
+       name: [ingredient?.name ?? '', Validators.required]
+     });
+   }
 
   loadCategories(): void {
+    // Keep async loading, update local arrays
     this.recipeService.getCategories().subscribe({
-        next: categories => {
-            this.categories = categories; // Stocker les catégories complètes si besoin ailleurs
-            this.categoryOptions = categories.map((cat) => ({
-                label: cat.name,
-                value: cat.name,
-            })).sort((a, b) => a.label.localeCompare(b.label)); // Tri alphabétique des options
+      next: categories => {
+        this.categories = categories;
+        this.categoryOptions = categories.map((cat) => ({
+          label: cat.name,
+          value: cat.name,
+        })).sort((a, b) => a.label.localeCompare(b.label));
 
-            // Retester la valeur actuelle au cas où les catégories arrivent après populateForm
-             if (this.isEditMode && this.recipeForm.get('category')?.value) {
-                 this.updateSubcategories(this.recipeForm.get('category')?.value);
-                 const currentSubcategory = this.recipeForm.get('subcategory')?.value;
-                 if(currentSubcategory) {
-                     // Vérifier si l'option existe toujours avant de la remettre
-                     if (this.subcategories.some(sub => sub.value === currentSubcategory)) {
-                          this.recipeForm.get('subcategory')?.setValue(currentSubcategory, {emitEvent: false});
-                     } else {
-                          this.recipeForm.get('subcategory')?.setValue('', {emitEvent: false}); // Vider si l'option n'existe plus
-                     }
-                 }
-             }
-        },
-        error: err => {
-            console.error("Error loading categories:", err);
-            this.messageService.add({severity: 'error', summary: 'Erreur', detail: 'Impossible de charger les catégories.'});
+        // Re-check subcategories if categories load after form population
+        if (this.isEditMode() && this.recipeForm.get('category')?.value) {
+          this.updateSubcategories(this.recipeForm.get('category')?.value);
+          const currentSubcategory = this.recipeForm.get('subcategory')?.value;
+           if (currentSubcategory && !this.subcategories.some(sub => sub.value === currentSubcategory)) {
+              this.recipeForm.get('subcategory')?.setValue('', { emitEvent: false });
+           } else if (currentSubcategory) {
+               this.recipeForm.get('subcategory')?.enable({ emitEvent: false }); // Ensure enabled if valid
+           }
         }
+      },
+      error: err => {
+        console.error("Error loading categories:", err);
+        this.messageService.add({ severity: 'error', summary: 'Erreur', detail: 'Impossible de charger les catégories.' });
+      }
     });
   }
 
-  // Remplir le formulaire en mode édition
   populateForm(recipe: Recipe): void {
-    console.log("Populating form with recipe:", recipe);
-
     this.recipeForm.patchValue({
       title: recipe.title,
       description: recipe.description,
@@ -216,11 +229,13 @@ export class RecipeFormComponent implements OnInit {
       cookTime: recipe.cookTime,
       servings: recipe.servings,
       difficulty: recipe.difficulty,
-      imageUrl: recipe.imageUrl || this.initialImageUrl,
-      tags: recipe.tags || [], // <-- AJOUTER : Remplir le control 'tags'
+      imageUrl: recipe.imageUrl, // Set the form control value
+      tags: recipe.tags || [],
     });
 
-    // Gérer les FormArrays (inchangé)
+    this.loadedRecipeImageUrl.set(recipe.imageUrl || null); // Update the signal for initial display
+
+    // Handle FormArrays (unchanged logic)
     this.clearFormArray(this.ingredients);
     (recipe.ingredients || []).forEach(ingredient => {
       this.ingredients.push(this.createIngredientGroup(ingredient));
@@ -233,226 +248,202 @@ export class RecipeFormComponent implements OnInit {
     });
     if (this.instructions.length === 0) this.addInstruction();
 
-    // // Gérer les tags <-- SUPPRIMER cette ligne
-    // this.recipeTags = recipe.tags || []; <-- SUPPRIMER cette ligne
+    // Enable/disable subcategory based on loaded data
+    this.updateSubcategories(recipe.category);
+    if (!recipe.subcategory) {
+         this.recipeForm.get('subcategory')?.disable({ emitEvent: false });
+    } else {
+         this.recipeForm.get('subcategory')?.enable({ emitEvent: false });
+    }
 
-    // Gérer l'image (inchangé)
-    this.initialImageUrl = recipe.imageUrl || this.initialImageUrl;
-    this.updateImagePreview(this.initialImageUrl);
-    this.loading = false;
+    this.selectedImageFile.set(null); // Reset any selected file when populating
+    this.loading.set(false); // Already handled in ngOnInit's finally block, but safe to keep
   }
 
   updateSubcategories(categoryName: string | null): void {
-    // ... (logique inchangée) ...
-      const subcategoryControl = this.recipeForm.get('subcategory');
-      if (!categoryName) {
-          this.subcategories = [];
-          subcategoryControl?.disable({ emitEvent: false });
-          subcategoryControl?.setValue('', { emitEvent: false });
-          return;
-      }
+    const subcategoryControl = this.recipeForm.get('subcategory');
+    if (!categoryName) {
+      this.subcategories = [];
+      subcategoryControl?.disable({ emitEvent: false });
+      subcategoryControl?.setValue('', { emitEvent: false });
+      return;
+    }
 
-      const category = this.categories.find((c) => c.name === categoryName);
-      if (category && category.subcategories && category.subcategories.length > 0) {
-          this.subcategories = category.subcategories
-                .sort((a, b) => a.name.localeCompare(b.name))
-                .map(sub => ({ label: sub.name, value: sub.name }));
-          subcategoryControl?.enable({ emitEvent: false });
-      } else {
-          this.subcategories = [];
-          subcategoryControl?.disable({ emitEvent: false });
-          subcategoryControl?.setValue('', { emitEvent: false });
-      }
+    const category = this.categories.find((c) => c.name === categoryName);
+    if (category && category.subcategories && category.subcategories.length > 0) {
+      this.subcategories = category.subcategories
+        .sort((a, b) => a.name.localeCompare(b.name))
+        .map(sub => ({ label: sub.name, value: sub.name }));
+      subcategoryControl?.enable({ emitEvent: false });
+    } else {
+      this.subcategories = [];
+      subcategoryControl?.disable({ emitEvent: false });
+      subcategoryControl?.setValue('', { emitEvent: false });
+    }
   }
 
 
-  // --- Gestion du FormArray d'ingrédients --- (inchangé)
-  get ingredients(): FormArray {
-    return this.recipeForm.get('ingredients') as FormArray;
-  }
-  getIngredientGroup(index: number): FormGroup {
-     return this.ingredients.at(index) as FormGroup;
-  }
-  addIngredient(): void {
-    this.ingredients.push(this.createIngredientGroup());
-  }
+  // --- Form Array Getters/Methods (Unchanged) ---
+  get ingredients(): FormArray { return this.recipeForm.get('ingredients') as FormArray; }
+  getIngredientGroup(index: number): FormGroup { return this.ingredients.at(index) as FormGroup; }
+  addIngredient(): void { this.ingredients.push(this.createIngredientGroup()); }
   removeIngredient(index: number): void {
-    if (this.ingredients.length > 1) {
-      this.ingredients.removeAt(index);
-    } else {
-      this.messageService.add({ severity: 'warn', summary: 'Attention', detail: 'Une recette doit avoir au moins un ingrédient.' });
-    }
+    if (this.ingredients.length > 1) this.ingredients.removeAt(index);
+    else this.messageService.add({ severity: 'warn', summary: 'Attention', detail: 'Au moins un ingrédient requis.' });
   }
-
-  // --- Gestion du FormArray d'instructions --- (inchangé)
-  get instructions(): FormArray {
-    return this.recipeForm.get('instructions') as FormArray;
-  }
-  addInstruction(): void {
-    this.instructions.push(this.fb.control('', Validators.required));
-  }
+  get instructions(): FormArray { return this.recipeForm.get('instructions') as FormArray; }
+  addInstruction(): void { this.instructions.push(this.fb.control('', Validators.required)); }
   removeInstruction(index: number): void {
-    if (this.instructions.length > 1) {
-      this.instructions.removeAt(index);
-    } else {
-       this.messageService.add({ severity: 'warn', summary: 'Attention', detail: 'Une recette doit avoir au moins une étape.' });
+    if (this.instructions.length > 1) this.instructions.removeAt(index);
+    else this.messageService.add({ severity: 'warn', summary: 'Attention', detail: 'Au moins une étape requise.' });
+  }
+  // -------------------------------------------
+
+  // --- Image Handling ---
+  onImageSelected(file: File | null): void {
+    this.selectedImageFile.set(file); // Update the signal
+
+    // If the user cleared the image, update the form control immediately
+    // This signals the intent to save without an image if no *new* image is chosen
+    if (file === null) {
+      this.recipeForm.get('imageUrl')?.setValue(''); // Use empty string or null
     }
   }
+  // --------------------
 
-  // --- Gestion Image --- (inchangé)
-  onFileSelect(event: any): void {
-      const file = event.currentFiles?.[0];
-      if (file) {
-          this.selectedImageFile = file;
-          console.log('Image sélectionnée:', this.selectedImageFile?.name);
-          const reader = new FileReader();
-          reader.onload = (e) => this.imagePreviewUrl = reader.result;
-          reader.readAsDataURL(file);
-      } else {
-          this.selectedImageFile = null;
-          this.updateImagePreview(this.recipeForm.get('imageUrl')?.value);
-      }
-  }
+  filterTags(event: { query: string }): void { /* ... Tag logic ... */ }
 
-  updateImagePreview(imageUrl: string | null | undefined): void {
-     const defaultImg = 'assets/images/default-recipe.jpg';
-     if (imageUrl && imageUrl !== defaultImg && imageUrl.startsWith('https://storage.googleapis.com/')) {
-        this.imagePreviewUrl = imageUrl;
-     } else {
-        this.imagePreviewUrl = null; // Pas d'aperçu pour défaut ou null/undefined
-     }
-  }
-
-  // --- AJOUT: Méthode pour filtrer les tags pour l'auto-complétion ---
-  filterTags(event: { query: string }): void {
-    const query = event.query.toLowerCase();
-    // Ici, une logique de suggestion plus avancée pourrait être implémentée
-    // (ex: appeler un service pour obtenir des tags populaires).
-    // Pour l'instant, on ne filtre rien, on permet juste l'ajout libre.
-    this.filteredTags = []; // Ou suggérer les tags déjà présents:
-    // const currentTags = this.recipeForm.get('tags')?.value || [];
-    // this.filteredTags = currentTags.filter((tag: string) => tag.toLowerCase().includes(query));
-  }
-
-
-  // --- Soumission / Annulation ---
-  onSubmit(): void {
+  // --- Submit Logic using async/await ---
+  async onSubmit(): Promise<void> {
     if (this.recipeForm.invalid) {
       this.markFormGroupTouched(this.recipeForm);
-      this.messageService.add({ severity: 'error', summary: 'Erreur', detail: 'Formulaire invalide. Veuillez corriger les erreurs.' });
+      this.messageService.add({ severity: 'error', summary: 'Erreur', detail: 'Formulaire invalide.' });
       console.warn('Form invalid:', this.getFormValidationErrors(this.recipeForm));
       return;
     }
 
-    this.isUploadingOrSaving = true;
+    this.isUploadingOrSaving.set(true);
+    // Get the URL currently in the form (could be original, or '' if cleared)
+    let finalImageUrl: string | null = this.recipeForm.get('imageUrl')?.value;
 
-    const imageResult$: Observable<{ imageUrl: string }> = this.selectedImageFile
-      ? this.recipeService.uploadImage(this.selectedImageFile).pipe(
-         catchError(err => {
-            console.error("Image upload failed, continuing without new image:", err);
-            this.messageService.add({ severity: 'error', summary: 'Échec Upload', detail: 'Impossible d\'uploader la nouvelle image. L\'ancienne image sera conservée si elle existe.' });
-            return of({ imageUrl: this.recipeForm.get('imageUrl')?.value || this.initialImageUrl });
+    try {
+      const imageFileToUpload = this.selectedImageFile(); // Read the signal
+
+      // 1. Upload image *only if* a new file was selected
+      if (imageFileToUpload) {
+        console.log('Uploading new image...');
+        const uploadResult = await lastValueFrom(this.recipeService.uploadImage(imageFileToUpload));
+        finalImageUrl = uploadResult.imageUrl; // Update the URL with the uploaded one
+        this.recipeForm.get('imageUrl')?.setValue(finalImageUrl, { emitEvent: false }); // Update form silently
+      }
+      // If imageFileToUpload is null, finalImageUrl already holds the original URL or '' (if cleared via onImageSelected)
+
+      console.log('Final Image URL to save:', finalImageUrl);
+
+      // 2. Prepare Payload
+      const formValue = this.recipeForm.getRawValue();
+      const finalIngredients = (formValue.ingredients || [])
+          .map((ing: any) => ({
+            quantity: ing.quantity,
+            unit: ing.unit?.trim() ?? '',
+            name: ing.name?.trim() ?? '',
           }))
-      : of({ imageUrl: this.recipeForm.get('imageUrl')?.value || this.initialImageUrl });
+          .filter((ing: Ingredient) => ing.name);
 
-    imageResult$.pipe(
-      switchMap(uploadResponse => {
-        const formValue = this.recipeForm.getRawValue(); // getRawValue inclut les champs désactivés
+      const finalInstructions = (formValue.instructions || [])
+          .map((inst: string) => inst?.trim() ?? '')
+          .filter((inst: string) => inst);
 
-        // Nettoyer les ingrédients et instructions vides avant l'envoi (inchangé)
-        const finalIngredients = formValue.ingredients
-             .map((ing: any) => ({
-                 quantity: ing.quantity,
-                 unit: ing.unit?.trim() ?? '',
-                 name: ing.name?.trim() ?? ''
-             }))
-             .filter((ing: Ingredient) => ing.name);
-
-        const finalInstructions = formValue.instructions
-             .map((inst: string) => inst?.trim() ?? '')
-             .filter((inst: string) => inst);
-
-         // Gérer subcategory si désactivé (inchangé)
-         const finalSubcategory = formValue.subcategory || null;
-
-        // Nettoyer les tags (supprimer les espaces superflus et les tags vides)
-        const finalTags = (formValue.tags || [])
+      const finalSubcategory = formValue.subcategory || null;
+      const finalTags = (formValue.tags || [])
           .map((tag: string) => tag?.trim())
-          .filter((tag: string | null): tag is string => tag !== null && tag !== ''); // Garde seulement les strings non vides
+          .filter((tag: string | null): tag is string => tag !== null && tag !== '');
 
-        const payloadToSend: Partial<Recipe> = {
-          ...(this.isEditMode && this.recipeId ? { id: this.recipeId } : {}),
-          title: formValue.title.trim(),
-          description: formValue.description?.trim() ?? '',
-          category: formValue.category,
-          subcategory: finalSubcategory,
-          prepTime: formValue.prepTime,
-          cookTime: formValue.cookTime,
-          servings: formValue.servings,
-          difficulty: formValue.difficulty,
-          ingredients: finalIngredients,
-          instructions: finalInstructions,
-          tags: finalTags, // <-- MODIFIER : Utiliser les tags du formulaire nettoyés
-          imageUrl: uploadResponse.imageUrl
-        };
 
-        console.log("Payload prêt pour sauvegarde/màj:", payloadToSend);
-        return this.recipeService.saveRecipe(payloadToSend as Recipe);
-      }),
-      finalize(() => {
-        this.isUploadingOrSaving = false;
-        console.log("Opération onSubmit terminée.");
-      })
-    ).subscribe({
-      next: (savedRecipe) => {
-        if (savedRecipe && savedRecipe.id) {
-          this.messageService.add({ severity: 'success', summary: 'Succès', detail: `Recette ${this.isEditMode ? 'mise à jour' : 'créée'} !` });
-          // Réinitialisation
-          this.recipeForm.reset({ // Réinitialise avec des valeurs par défaut si besoin
-            imageUrl: this.initialImageUrl, // Garde l'image par défaut
-            ingredients: [], // Sera géré par addIngredient
-            instructions: [], // Sera géré par addInstruction
-            tags: [] // Réinitialise les tags
-          });
-          // this.recipeTags = []; // <-- SUPPRIMER
-          this.clearFormArray(this.ingredients); this.addIngredient();
-          this.clearFormArray(this.instructions); this.addInstruction();
-          this.selectedImageFile = null;
-          this.updateImagePreview(this.initialImageUrl);
-          this.isEditMode = false;
-          this.recipeId = '';
+      const payloadToSend: Partial<Recipe> = {
+        ...(this.isEditMode() && this.recipeId() ? { id: this.recipeId() } : {}), // Use signals
+        title: formValue.title.trim(),
+        description: formValue.description?.trim() ?? '',
+        category: formValue.category,
+        subcategory: finalSubcategory,
+        prepTime: formValue.prepTime,
+        cookTime: formValue.cookTime,
+        servings: formValue.servings,
+        difficulty: formValue.difficulty,
+        ingredients: finalIngredients,
+        instructions: finalInstructions,
+        tags: finalTags,
+        imageUrl: finalImageUrl ?? '' // Use the determined final URL
+      };
 
-          setTimeout(() => { this.router.navigate(['/recipe', savedRecipe.id]); }, 1000);
+      console.log('Payload to send:', payloadToSend);
+
+      // 3. Save Recipe
+      const savedRecipe = await lastValueFrom(this.recipeService.saveRecipe(payloadToSend as Recipe));
+
+      if (savedRecipe && savedRecipe.id) {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Succès',
+          detail: `Recette ${this.isEditMode() ? 'mise à jour' : 'créée'} !`,
+        });
+        this.resetFormAndSignals(); // Reset state
+        setTimeout(() => { this.router.navigate(['/recipe', savedRecipe.id]); }, 1000);
+      } else {
+          // Should not happen if saveRecipe throws error on failure
+          this.messageService.add({ severity: 'warn', summary: 'Attention', detail: 'Réponse serveur inattendue après sauvegarde.' });
+      }
+
+    } catch (err: any) {
+      console.error("Erreur lors de l'upload ou de la sauvegarde:", err);
+      const detail = err?.error?.message || err.message || 'Une erreur est survenue.';
+      this.messageService.add({ severity: 'error', summary: 'Erreur', detail: detail });
+    } finally {
+      this.isUploadingOrSaving.set(false); // Ensure loader stops
+    }
+  }
+  // --------------------------------------
+
+  cancel(): void {
+    this.confirmationService.confirm({
+      message: 'Annuler les modifications ?',
+      header: 'Confirmation',
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Oui',
+      rejectLabel: 'Non',
+      accept: () => {
+        if (this.isEditMode() && this.recipeId()) {
+          this.router.navigate(['/recipe', this.recipeId()]);
         } else {
-           this.messageService.add({ severity: 'warn', summary: 'Attention', detail: 'Sauvegarde réussie mais réponse serveur inattendue.' });
+          this.router.navigate(['/']);
         }
-      },
-      error: (err) => {
-        console.error("Erreur lors de la sauvegarde de la recette:", err);
-        this.messageService.add({ severity: 'error', summary: 'Erreur Sauvegarde', detail: err?.error?.message || 'Impossible d\'enregistrer la recette.' });
       }
     });
   }
 
+  resetFormAndSignals(): void {
+    const defaultValues = {
+        title: '', description: '', category: '', subcategory: '',
+        prepTime: null, cookTime: null, servings: null, difficulty: '',
+        imageUrl: null, tags: []
+    };
+    this.recipeForm.reset(defaultValues);
 
-  cancel(): void {
-     this.confirmationService.confirm({
-        message: 'Êtes-vous sûr de vouloir annuler ? Toutes les modifications non enregistrées seront perdues.',
-        header: 'Confirmation d\'annulation',
-        icon: 'pi pi-exclamation-triangle',
-        acceptLabel: 'Oui, annuler',
-        rejectLabel: 'Non',
-        accept: () => {
-            if (this.isEditMode && this.recipeId) {
-                this.router.navigate(['/recipe', this.recipeId]);
-            } else {
-                this.router.navigate(['/']);
-            }
-        }
-    });
-  }
+    this.clearFormArray(this.ingredients); this.addIngredient();
+    this.clearFormArray(this.instructions); this.addInstruction();
 
-  // --- Helpers --- (inchangés)
+    this.selectedImageFile.set(null);
+    this.loadedRecipeImageUrl.set(null); // Reset loaded URL too
+    this.isEditMode.set(false);
+    this.recipeId.set('');
+
+    // Explicitly disable subcategory after reset
+    this.recipeForm.get('subcategory')?.disable({ emitEvent: false });
+    this.subcategories = []; // Clear subcategory options
+}
+
+
+  // --- Helpers (Unchanged) ---
   clearFormArray(formArray: FormArray): void {
     while (formArray.length !== 0) {
       formArray.removeAt(0);
@@ -468,18 +459,18 @@ export class RecipeFormComponent implements OnInit {
     });
   }
 
-   // Helper pour debugger les erreurs de validation (inchangé)
   getFormValidationErrors(form: FormGroup | FormArray): any {
     const errors: any = {};
     Object.keys(form.controls).forEach(key => {
-        const control = form.get(key);
-        if (control instanceof FormControl) {
-            if (control.errors != null) { errors[key] = control.errors; }
-        } else if (control instanceof FormGroup || control instanceof FormArray) {
-            const nestedErrors = this.getFormValidationErrors(control);
-            if (Object.keys(nestedErrors).length > 0) { errors[key] = nestedErrors; }
-        }
+      const control = form.get(key);
+      if (control instanceof FormControl) {
+        if (control.errors != null) { errors[key] = control.errors; }
+      } else if (control instanceof FormGroup || control instanceof FormArray) {
+        const nestedErrors = this.getFormValidationErrors(control);
+        if (Object.keys(nestedErrors).length > 0) { errors[key] = nestedErrors; }
+      }
     });
     return errors;
   }
+  // --------------------------
 }

@@ -1,0 +1,87 @@
+<div class="image-upload-container">
+  <label class="image-upload-label">{{ label() }}</label>
+  <p-fileupload
+    #imageUploader
+    name="imageSelect"
+    mode="basic"
+    [accept]="accept()"
+    [maxFileSize]="maxFileSize"
+    [customUpload]="true"
+    (onSelect)="onFileSelect($event)"
+    (onClear)="onInternalClear()"
+    [showUploadButton]="false"
+    [showCancelButton]="true"
+    [auto]="false"
+    chooseLabel="Choisir"
+    invalidFileSizeMessageSummary="Taille invalide:"
+    [invalidFileSizeMessageDetail]="'Taille max: ' + formatSize(maxFileSize())"
+    invalidFileTypeMessageSummary="Type invalide:"
+    invalidFileTypeMessageDetail="Seuls les fichiers de type image sont autorisés."
+    styleClass="image-uploader-control"
+  >
+    <ng-template pTemplate="header">
+      @if(selectedFile() || (initialImageUrl() && !selectedFile())){
+      <p-button
+        icon="pi pi-times"
+        label="Vider"
+        (click)="clearSelection()"
+        styleClass="p-button-danger p-button-outlined p-button-sm ml-2"
+        pTooltip="Vider la sélection / Supprimer l'image"
+        tooltipPosition="top"
+      />
+      }
+    </ng-template>
+
+    <ng-template pTemplate="content">
+      <div
+        class="preview-zone mt-3 p-4 border-1 surface-border border-round text-center"
+        [class.has-selection]="selectedFile()"
+        [class.has-initial]="
+          !selectedFile() && (initialImageUrl || defaultImage)
+        "
+      >
+        @if (selectedFile() && previewUrl() &&
+        previewUrl()!.toString().startsWith('data:image')) {
+        <div class="selected-file-preview flex flex-col items-center gap-3">
+          <img
+            [src]="previewUrl()"
+            [alt]="selectedFile()!.name"
+            class="preview-image shadow-md"
+            style="max-width: 200px; max-height: 150px; object-fit: cover"
+          />
+          <span
+            class="font-semibold text-ellipsis max-w-60 whitespace-nowrap overflow-hidden"
+            [pTooltip]="selectedFile()!.name"
+            tooltipPosition="bottom"
+          >
+            {{ selectedFile()!.name }}
+          </span>
+          <span>{{ formatSize(selectedFile()!.size) }}</span>
+          <p-badge value="Sélectionné" severity="info" />
+        </div>
+        } @if (!selectedFile() && previewUrl() &&
+        !previewUrl()!.toString().startsWith('data:image')) {
+        <div class="initial-image-preview flex flex-col items-center gap-3">
+          <img
+            [src]="previewUrl()"
+            alt="Image actuelle"
+            class="preview-image shadow-md"
+            style="max-width: 200px; max-height: 150px; object-fit: cover"
+          />
+          <p-badge value="Image actuelle" severity="contrast" />
+        </div>
+        } @if (!selectedFile() && !previewUrl()) {
+        <div class="empty-state flex flex-col items-center justify-center p-4">
+          <i class="pi pi-image text-6xl text-gray-400 mb-3"></i>
+          <p class="text-gray-500">Aucune image sélectionnée.</p>
+        </div>
+        }
+      </div>
+    </ng-template>
+    @if(!selectedFile() && !initialImageUrl){
+    <small class="block mt-2 text-gray-500">
+      Sélectionnez une image (Max: {{ formatSize(maxFileSize()) }}).
+    </small>
+    }
+  </p-fileupload>
+</div>

@@ -50,13 +50,10 @@ export class SearchResultsComponent implements OnInit {
         const query = params.get('q');
         this.searchTerm.set(query || ''); // Mettre à jour le signal du terme recherché
         if (!query) {
-          console.log("[SearchResults] No search term found in query params.");
           return of([]); // Pas de terme, retourne un tableau vide
         }
-        console.log(`[SearchResults] Searching for term: "${query}"`);
         return this.recipeService.searchRecipes(query).pipe(
            catchError(err => {
-              console.error("[SearchResults] Error loading search results:", err);
               this.errorLoading.set("Une erreur est survenue lors de la recherche.");
               return of([]); // Retourne un tableau vide en cas d'erreur
            })
@@ -65,7 +62,6 @@ export class SearchResultsComponent implements OnInit {
       tap(() => this.isLoading.set(false)) // Arrêter le chargement après réception
     ).subscribe(results => {
       this.recipes.set(results);
-      console.log("[SearchResults] Received results:", results);
     });
   }
 

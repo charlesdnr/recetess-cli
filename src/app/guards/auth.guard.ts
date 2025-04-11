@@ -9,8 +9,6 @@ export const authGuard: CanActivateFn = (route, state) => {
   if (authService.isAuthenticated()) {
     return true; // Autorisé si admin connecté
   } else {
-    // Non autorisé, rediriger vers l'accueil
-    console.log('AuthGuard: Access denied, redirecting to home.');
     router.navigate(['/']);
     return false;
   }

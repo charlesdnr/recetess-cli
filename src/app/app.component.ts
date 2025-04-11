@@ -27,7 +27,7 @@ import { GlobalLoaderComponent } from './components/global-loader/global-loader.
     CommonModule, RouterOutlet, MenubarModule, ButtonModule,
     InputTextModule, DialogModule, PasswordModule, FormsModule,
     ToastModule, InputGroupModule, InputGroupAddonModule,
-    GlobalLoaderComponent // <-- Ajouter le loader aux imports
+    GlobalLoaderComponent, RouterLink // <-- Ajouter le loader aux imports
   ],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
@@ -61,7 +61,6 @@ export class AppComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.loadMenuItems();
     this.authSub = this.isAdmin$.subscribe(isAdmin => {
-      console.log('Admin status changed:', isAdmin);
       // Recharger les catégories pour potentiellement mettre à jour le menu si nécessaire
       this.recipeService.getCategories().subscribe(categories => {
           this.buildMenu(categories); // Reconstruire avec les catégories à jour
@@ -86,7 +85,6 @@ export class AppComponent implements OnInit, OnDestroy {
 
 
   buildMenu(categories: Category[] = []): void {
-    console.log('Building menu, isAdmin:', this.authService.isAuthenticated());
     const isAdmin = this.authService.isAuthenticated();
 
     const categoryMenuItems: MenuItem[] = categories.map(category => ({
@@ -150,12 +148,9 @@ export class AppComponent implements OnInit, OnDestroy {
 performSearch(): void {
   const term = this.currentSearchTerm.trim();
   if (term) {
-    console.log(`AppComponent: Navigating to search results for term "${term}"`);
     // Naviguer vers la page de résultats de recherche en passant le terme comme query param
     this.router.navigate(['/search'], { queryParams: { q: term } });
     this.currentSearchTerm = ''; // Optionnel: vider le champ après la recherche
-  } else {
-     console.log("AppComponent: Search term is empty, not navigating.");
   }
 }
 

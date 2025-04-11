@@ -44,7 +44,6 @@ export class AuthService {
   checkStatusOnLoad(): void {
     const token = this.getToken();
     if (token) {
-      console.log('AuthService: Checking status with existing token.');
       this.http.get<StatusResponse>(`${this.apiUrl}/status`, {
         headers: new HttpHeaders({ 'X-Admin-Token': token }) // Envoyer le token pour vérification
       }).pipe(
@@ -69,7 +68,6 @@ export class AuthService {
           if (response && response.token) {
             this.storeToken(response.token); // Stocker le token reçu
             this.isAdminSubject.next(true); // Mettre à jour l'état
-            console.log('AuthService: Login successful.');
           } else {
             // Ne devrait pas arriver si le backend renvoie 200 + token
             this.clearToken();
@@ -92,15 +90,11 @@ export class AuthService {
     if (token) {
       // Informer le backend (optionnel mais propre)
       this.http.post(`${this.apiUrl}/logout`, {}, { headers: new HttpHeaders({ 'X-Admin-Token': token }) })
-        .pipe(catchError(() => of(null))) // Ignorer l'erreur si le backend échoue ici
-        .subscribe(() => {
-          console.log('AuthService: Logout signal sent to backend.');
-        });
+        .pipe(catchError(() => of(null)))
     }
     // Nettoyer côté client dans tous les cas
     this.clearToken();
     this.isAdminSubject.next(false);
-    console.log('AuthService: Logged out locally.');
   }
 
   // Stocker le token (ici dans sessionStorage)

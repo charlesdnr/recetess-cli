@@ -14,7 +14,6 @@ export const authInterceptor: HttpInterceptorFn = (
         const clonedReq = req.clone({
             headers: req.headers.set('X-Admin-Token', token),
         });
-        // console.log('AuthInterceptor: Adding X-Admin-Token header'); // Debug
         return next(clonedReq);
     }
 

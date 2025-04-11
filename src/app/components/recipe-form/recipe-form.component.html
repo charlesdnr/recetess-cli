@@ -4,26 +4,18 @@
 <div class="container">
   <div class="header">
     <a
-      [routerLink]="isEditMode ? ['/recipe', recipeId] : ['']"
+      [routerLink]="isEditMode() ? ['/recipe', recipeId()] : ['']"
       class="back-link"
     >
       <i class="pi pi-arrow-left"></i>
-      {{ isEditMode ? "Retour à la recette" : "Retour à l'accueil" }}
+      {{ isEditMode() ? "Retour à la recette" : "Retour à l'accueil" }}
     </a>
     <h1>
-      {{ isEditMode ? "Modifier la recette" : "Créer une nouvelle recette" }}
+      {{ isEditMode() ? "Modifier la recette" : "Créer une nouvelle recette" }}
     </h1>
   </div>
 
-  <div class="loading-container text-center p-4" *ngIf="loading">
-    <p-progressSpinner
-      styleClass="w-4rem h-4rem"
-      strokeWidth="8"
-    ></p-progressSpinner>
-    <p class="mt-2">Chargement de la recette...</p>
-  </div>
-
-  <form [formGroup]="recipeForm" (ngSubmit)="onSubmit()" *ngIf="!loading">
+  <form [formGroup]="recipeForm" (ngSubmit)="onSubmit()" *ngIf="!loading()">
     <p-card>
       <div class="form-grid grid">
         <div class="form-field col-12">
@@ -229,34 +221,15 @@
             >Appuyez sur Entrée après chaque tag pour l'ajouter.</small
           >
         </div> -->
-
         <div class="form-field col-12">
-          <label>Image de la recette</label>
-          <div *ngIf="imagePreviewUrl" class="image-preview-container">
-            <img [src]="imagePreviewUrl" alt="Aperçu" class="image-preview" />
-          </div>
-          <div *ngIf="!imagePreviewUrl" class="image-placeholder">
-            (Aucune image sélectionnée ou image par défaut)
-          </div>
-
-          <p-fileUpload
-            name="recipeImage"
-            mode="basic"
-            #fileUploader
-            (onSelect)="onFileSelect($event); fileUploader.clear()"
-            [multiple]="false"
-            accept="image/*"
+          <app-image-upload
+            [label]="'Image de la recette'"
+            [initialImageUrl]="initialImageUrlForChild()"
             [maxFileSize]="5000000"
-            chooseLabel="Choisir/Changer l'image"
-            chooseIcon="pi pi-image"
-            invalidFileSizeMessageSummary="Taille invalide:"
-            invalidFileSizeMessageDetail="Taille max: 5MB"
-            invalidFileTypeMessageSummary="Type invalide:"
-            invalidFileTypeMessageDetail="Seules les images sont autorisées."
-            styleClass="p-button-sm"
+            (fileSelected)="onImageSelected($event)"
+            [defaultImage]="'assets/images/default-recipe.jpg'"
           >
-          </p-fileUpload>
-          <small class="form-help-text mt-1">Taille max: 5 Mo.</small>
+          </app-image-upload>
         </div>
       </div>
 
@@ -282,7 +255,7 @@
                     getIngredientGroup($index).get('quantity')?.invalid &&
                     getIngredientGroup($index).get('quantity')?.touched
                 }"
-              >
+              />
             </div>
             <div class="col-3 md:col-2">
               <input
@@ -391,7 +364,7 @@
       <div
         class="form-actions flex justify-content-end align-items-center mt-4"
       >
-        <div *ngIf="isUploadingOrSaving" class="mr-3 flex align-items-center">
+        <div *ngIf="isUploadingOrSaving()" class="mr-3 flex align-items-center">
           <i class="pi pi-spin pi-spinner mr-2"></i>
           <span>Enregistrement en cours...</span>
         </div>
@@ -401,14 +374,14 @@
           icon="pi pi-times"
           styleClass="p-button-text mr-2"
           (click)="cancel()"
-          [disabled]="isUploadingOrSaving"
+          [disabled]="isUploadingOrSaving()"
         ></p-button>
         <p-button
           type="submit"
-          label="{{ isEditMode ? 'Mettre à jour' : 'Enregistrer' }}"
+          label="{{ isEditMode() ? 'Mettre à jour' : 'Enregistrer' }}"
           icon="pi pi-check"
-          [disabled]="recipeForm.invalid || isUploadingOrSaving"
-          [loading]="isUploadingOrSaving"
+          [disabled]="recipeForm.invalid || isUploadingOrSaving()"
+          [loading]="isUploadingOrSaving()"
         ></p-button>
       </div>
     </p-card>

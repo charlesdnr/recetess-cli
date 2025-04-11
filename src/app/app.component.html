@@ -2,8 +2,12 @@
   <p-toast></p-toast>
   <app-global-loader></app-global-loader>
   <header class="app-header">
+    <div style="cursor: pointer;" [routerLink]="'/'" class="logo-img">
+      <img  src="assets/images/logo.png" alt="logo">
+    </div>
+
     <div class="header-content">
-      <div class="logo" routerLink="/">Les Recettes de Camille</div>
+      <div class="logo" [routerLink]="'/'">Les Recettes de Camille</div>
       <nav class="main-nav">
         <p-menubar [model]="items">
           <ng-template pTemplate="end">
@@ -51,7 +55,11 @@
     <router-outlet></router-outlet>
   </main>
 
-  <footer class="app-footer"></footer>
+  <footer class="app-footer">
+    <div class="footer-content">
+      <p>&copy; {{ currentYear }} Les Recettes de Camille - Tous droits réservés</p>
+    </div>
+  </footer>
 
   <p-dialog
     header="Connexion Administrateur"

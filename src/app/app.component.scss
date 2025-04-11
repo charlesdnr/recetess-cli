@@ -8,10 +8,30 @@
 .app-header {
   background-color: var(--dark-color);
   box-shadow: var(--shadow);
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+
+  .logo-img{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex: 1;
+    max-width: 200px;
+
+    img{
+      width: 7rem;
+      height: 7rem;
+      object-fit: cover;
+    }
+  }
+
+
 
   .header-content {
-    max-width: 1200px;
-    margin: 0 auto;
+    flex: 9;
+    min-width: 350px;
     padding: 0.75rem 1rem;
   }
 

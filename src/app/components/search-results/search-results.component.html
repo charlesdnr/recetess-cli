@@ -1,0 +1,75 @@
+<div class="container search-results-page">
+  @if (isLoading()) {
+    <div class="loading-indicator">
+      <p-progressSpinner styleClass="w-4rem h-4rem" strokeWidth="8"></p-progressSpinner>
+      <p>Recherche en cours pour "{{ searchTerm() }}"...</p>
+    </div>
+  } @else {
+    <div class="header">
+      @if (searchTerm()) {
+        <h1>Résultats pour "{{ searchTerm() }}"</h1>
+        <p>{{ resultsCount() }} recette(s) trouvée(s)</p>
+      } @else {
+        <h1>Recherche</h1>
+        <p>Veuillez entrer un terme dans la barre de recherche.</p>
+      }
+    </div>
+
+    @if (errorLoading()) {
+      <p-message severity="error" [text]="errorLoading() ?? ''"></p-message>
+    }
+
+    @if (!errorLoading() && recipes().length > 0) {
+      <div class="recipes-grid">
+        @for (recipe of recipes(); track recipe.id) {
+          <p-card styleClass="recipe-card">
+            <ng-template pTemplate="header">
+              @if(getFullImageUrl(recipe.imageUrl) !== 'assets/images/default-recipe.jpg'){
+                <div class="recipe-image"> <img [src]="getFullImageUrl(recipe.imageUrl)" [alt]="recipe.title" />
+                </div>
+              }
+          </ng-template>
+
+          <ng-template pTemplate="title">
+            <h3>{{ recipe.title }}</h3> </ng-template>
+
+            <ng-template pTemplate="content">
+              <div class="recipe-meta">
+                <span><i class="pi pi-clock"></i> {{ (recipe.prepTime || 0) + (recipe.cookTime || 0) }} min</span>
+                <span *ngIf="recipe.difficulty"><i class="pi pi-star"></i> {{ recipe.difficulty }}</span>
+                <span *ngIf="recipe.servings"><i class="pi pi-users"></i> {{ recipe.servings }} pers.</span>
+              </div>
+               @if (recipe.tags && recipe.tags.length > 0) {
+                <div class="recipe-tags">
+                    @for(tag of recipe.tags; track $index) {
+                        <p-tag [value]="tag" styleClass="recipe-tag"></p-tag>
+                    }
+                </div>
+               }
+            </ng-template>
+
+            <ng-template pTemplate="footer">
+              <div class="recipe-footer">
+                <p-button
+                  [routerLink]="['/recipe', recipe.id]"
+                  label="Voir la recette"
+                  icon="pi pi-eye">
+                </p-button>
+              </div>
+            </ng-template>
+          </p-card>
+        }
+      </div>
+    } @else if (!errorLoading() && !searchTerm()) {
+        <div class="no-results">
+           <i class="pi pi-search"></i>
+            <p>Utilisez la barre de recherche en haut pour trouver une recette.</p>
+        </div>
+    } @else if (!errorLoading()) {
+       <div class="no-results">
+            <i class="pi pi-info-circle"></i>
+            <p>Aucune recette trouvée correspondant à "{{ searchTerm() }}".</p>
+        </div>
+    }
+  }
+</div>

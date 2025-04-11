@@ -7,13 +7,14 @@ import Aura from '@primeng/themes/aura';
 import { routes } from './app.routes';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { authInterceptor } from './interceptors/auth.interceptor';
+import { loadingInterceptor } from './interceptors/loading.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
     provideAnimationsAsync(),
-    provideHttpClient(withInterceptors([authInterceptor])),
+    provideHttpClient(withInterceptors([authInterceptor, loadingInterceptor])),
     providePrimeNG({
       theme: {
         preset: Aura,
@@ -21,7 +22,7 @@ export const appConfig: ApplicationConfig = {
           darkModeSelector: '.my-app-dark',
           cssLayer: {
             name: 'primeng',
-            order: 'app-styles, primeng, another-css-library',
+            order: 'app-styles, primeng',
           },
         },
       },

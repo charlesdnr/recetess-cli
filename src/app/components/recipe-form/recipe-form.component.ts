@@ -162,8 +162,10 @@ export class RecipeFormComponent implements OnInit {
       ingredients: this.fb.array([this.createIngredientGroup()], Validators.required),
       instructions: this.fb.array([this.fb.control('', Validators.required)], Validators.required),
       imageUrl: [this.initialImageUrl],
-      tags: [[]], // <-- AJOUTER : Initialiser comme un tableau vide
+      tags: [[]],
     });
+
+    console.log(this.recipeForm)
 
     // Surveiller les changements de catégorie
     this.recipeForm.get('category')?.valueChanges.subscribe((categoryName) => {

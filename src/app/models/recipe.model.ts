@@ -28,6 +28,6 @@ export interface Subcategory {
 }
 export interface Ingredient {
   name: string;
-  quantity: number | string; // Peut être un nombre ou 'selon goût', etc.
+  quantity: number | string;
   unit: string;
 }

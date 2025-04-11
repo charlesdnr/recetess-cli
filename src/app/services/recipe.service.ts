@@ -276,6 +276,22 @@ export class RecipeService {
       )
     );
   }
+
+  searchRecipes(term: string): Observable<Recipe[]> {
+    if (!term.trim()) {
+      // Si le terme est vide, retourner un Observable de tableau vide
+      return of([]);
+    }
+    // Utiliser HttpParams pour encoder correctement le terme de recherche dans l'URL
+    const params = new HttpParams().set('q', term);
+    const searchUrl = `${this.backendBaseUrl}/api/recipes/search`; // Construire l'URL complète
+    console.log(`[RecipeService] Searching recipes with term: "${term}" at ${searchUrl}`);
+
+    return this.http.get<Recipe[]>(searchUrl, { params }).pipe(
+      tap(recipes => console.log(`[RecipeService] Found ${recipes.length} recipes for term "${term}"`)),
+      catchError(this.handleError<Recipe[]>('searchRecipes', [])) // Renvoyer [] en cas d'erreur
+    );
+  }
   private handleError<T>(operation = 'operation', result?: T) {
     return (error: any): Observable<T> => {
       console.error(

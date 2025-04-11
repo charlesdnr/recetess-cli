@@ -3,9 +3,9 @@
     <a [routerLink]="['']" class="back-link">
       <i class="pi pi-arrow-left"></i> Retour aux catégories
     </a>
-    <h1>{{ category }}</h1>
-    @if (subcategory) {
-    <h2>{{ subcategory }}</h2>
+    <h1>{{ category() }}</h1>
+    @if (subcategory()) {
+    <h2>{{ subcategory() }}</h2>
     }
   </div>
 
@@ -15,17 +15,17 @@
         [options]="sortOptions"
         [(ngModel)]="sortField"
         placeholder="Trier par"
-        (onChange)="onSortChange($event)"
       ></p-select>
     </div>
   </div>
 
-  @if (recipes && recipes.length > 0) {
+  @if (recipesSort() && recipesSort().length > 0) {
   <div class="recipes-grid">
-    @for (recipe of recipes; track recipe.id) {
+    @for (recipe of recipesSort(); track recipe.id) {
     <p-card styleClass="recipe-card">
       <ng-template pTemplate="header">
-        @if(!getFullImageUrl(recipe.imageUrl) || getFullImageUrl(recipe.imageUrl) != 'assets/images/default-recipe.jpg'){
+        @if(!getFullImageUrl(recipe.imageUrl) ||
+        getFullImageUrl(recipe.imageUrl) != 'assets/images/default-recipe.jpg'){
         <div class="recipe-image">
           <img [src]="getFullImageUrl(recipe.imageUrl)" [alt]="recipe.title" />
         </div>
@@ -68,12 +68,13 @@
   <div class="no-recipes">
     <i class="pi pi-info-circle"></i>
     <p>Aucune recette trouvée dans cette catégorie.</p>
+    @if(isAdmin$ | async){
     <p-button
-      *ngIf="isAdmin$ | async"
       [routerLink]="['/new-recipe']"
       label="Créer une recette"
       icon="pi pi-plus"
     ></p-button>
+    }
   </div>
   }
 </div>

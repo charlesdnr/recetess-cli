@@ -271,18 +271,18 @@
             class="ingredient-item grid nogutter align-items-center mb-2"
           >
             <div class="col-3 md:col-2">
-              <p-inputNumber
+              <input
+                type="text"
+                pInputText
                 placeholder="Qté"
                 formControlName="quantity"
-                [showButtons]="false"
-                [min]="0"
-                size="small"
+                class="p-inputtext-sm"
                 [ngClass]="{
                   'ng-invalid ng-dirty':
                     getIngredientGroup($index).get('quantity')?.invalid &&
                     getIngredientGroup($index).get('quantity')?.touched
                 }"
-              ></p-inputNumber>
+              >
             </div>
             <div class="col-3 md:col-2">
               <input

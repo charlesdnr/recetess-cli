@@ -3,13 +3,19 @@
   header="Confirmation"
   icon="pi pi-exclamation-triangle"
 ></p-confirmDialog>
-<div class="loading-container text-center p-4" *ngIf="isLoading">
-  <p-progressSpinner
-    styleClass="w-4rem h-4rem"
-    strokeWidth="8"
-  ></p-progressSpinner>
-  <p class="mt-2">Chargement de la recette...</p>
+@if (recipe) {
+<div class="container mt-3"></div>
+} @else {
+<div class="container text-center p-4">
+  <p-message severity="warn" text="Recette non trouvée."></p-message>
+  <p-button
+    label="Retour à l'accueil"
+    icon="pi pi-home"
+    styleClass="p-button-secondary mt-3"
+    routerLink="/"
+  ></p-button>
 </div>
+}
 
 <div class="container mt-3" *ngIf="!isLoading && recipe">
   <div class="back-navigation mb-3">
@@ -127,8 +133,6 @@
         </div>
         <p-divider layout="horizontal"></p-divider>
         }
-
-
 
         <div class="recipe-ingredients mb-4">
           <h3>Ingrédients</h3>

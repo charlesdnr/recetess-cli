@@ -1,0 +1,187 @@
+/* src/app/components/search-results/search-results.component.scss */
+/* VERSION RÉVISÉE pour correspondre AU MIEUX à category.component.scss */
+
+.container {
+  width: 100%;
+}
+
+/* Styles spécifiques à la page de recherche */
+.header {
+  margin-bottom: 30px;
+  text-align: center;
+
+  h1 {
+    margin-bottom: 10px;
+    color: var(--dark-color);
+    font-size: 2.2rem;
+    font-weight: 700;
+  }
+
+  p {
+    color: var(--secondary-color);
+    font-size: 1.1rem;
+    margin-top: 5px;
+  }
+}
+
+.loading-indicator, .no-results {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  background-color: var(--white);
+  border-radius: var(--border-radius);
+  text-align: center;
+  box-shadow: var(--shadow);
+  margin-top: 2rem;
+
+  i {
+    color: var(--secondary-color);
+    margin-bottom: 20px;
+    font-size: 3rem;
+  }
+
+  p {
+    color: var(--dark-color);
+    font-size: 1.2rem;
+    margin-bottom: 0;
+  }
+}
+.recipes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); // Taille min légèrement réduite
+  gap: 25px; // Un peu plus d'espace
+}
+
+/* --- Styles pour les cartes de recette (MODIFIÉS) --- */
+:host ::ng-deep .recipe-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--card-background, var(--white)); // Fond blanc par défaut
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+  overflow: hidden; // Important
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+
+  &:hover {
+     transform: translateY(-5px);
+     box-shadow: 0 8px 12px rgba(46, 31, 39, 0.15);
+  }
+
+  // Structure interne p-card
+  .p-card-header {
+    padding: 0; // Pas de padding ici
+    // L'image sera gérée par .recipe-image s'il est présent dans le template
+  }
+
+  .p-card-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 0; // Le padding sera géré par les éléments internes
+  }
+
+  .p-card-title {
+     padding: 0; // Pas de padding direct ici
+     margin: 0;
+     background-color: var(--mycolor-color); // **Couleur de fond pour le titre**
+     border-radius: 0; // Pas de coins arrondis spécifiques ici
+  }
+
+  .p-card-content {
+    flex-grow: 1; // Prend l'espace
+    padding: 1rem 1.25rem; // Padding pour les métas
+    display: flex; // Pour centrer les métas si besoin
+    flex-direction: column; // Empiler contenu si plusieurs éléments
+    justify-content: center; // Centrer verticalement si peu de contenu
+    min-height: 60px; // Hauteur minimale pour la zone de contenu
+  }
+
+   .p-card-footer {
+    padding: 0; // Pas de padding
+    border-top: 1px solid var(--surface-border, #eee); // Séparateur
+  }
+
+  /* Style de l'image (optionnel, si vous voulez la garder) */
+  .recipe-image {
+    height: 200px; // Ou autre hauteur si affichée
+    display: block;
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+  }
+  // Cacher l'image si non désirée pour ce style :
+  // .recipe-image { display: none; }
+
+  /* Style du titre h3 (DANS pTemplate="title") */
+  h3 {
+    color: var(--white); // **Texte blanc sur fond coloré**
+    font-weight: 600;
+    font-size: 1.3rem; // Légèrement plus grand peut-être
+    line-height: 1.4;
+    text-align: center; // **Centrer le texte**
+    padding: 0.75rem 1rem; // Padding interne pour le bandeau titre
+    margin: 0; // Pas de marge externe
+  }
+}
+
+/* Styles pour les métadonnées (MODIFIÉS) */
+.recipe-meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center; // **Centrer les éléments meta**
+  align-items: center; // Aligner verticalement
+  gap: 15px 20px; // Espace vertical et horizontal
+  // margin-bottom: 15px; // Plus besoin si centré dans p-card-content
+  font-size: 0.95rem; // Légèrement plus grand
+  width: 100%; // Prendre toute la largeur du content
+
+  span {
+    display: flex;
+    align-items: center;
+    color: var(--secondary-color); // Couleur des métas
+
+    i {
+      margin-right: 6px; // Un peu plus d'espace avant l'icône
+      font-size: 1rem;
+      color: var(--secondary-color); // Icônes dans la couleur secondaire
+    }
+  }
+}
+
+/* Styles pour les tags (CACHÉS pour correspondre à l'image) */
+.recipe-tags {
+  display: none; // **Cacher les tags**
+}
+
+/* Styles pour le footer de la carte (bouton) */
+.recipe-footer {
+  display: flex;
+  justify-content: center;
+  padding: 1rem;
+
+  // Style spécifique pour le bouton dans le footer
+  :host ::ng-deep .p-button {
+    background-color: var(--secondary-color); // **Couleur de fond du bouton**
+    border-color: var(--secondary-color); // **Couleur de bordure**
+    color: var(--white); // Texte blanc
+
+    &:hover, &:focus {
+      background-color: var(--dark-color); // Couleur au survol (ajuster si besoin)
+      border-color: var(--dark-color);
+      color: var(--white);
+    }
+  }
+}
+
+/* Ajustements responsives (inchangés) */
+@media (max-width: 768px) {
+  .recipes-grid {
+     grid-template-columns: 1fr;
+  }
+}

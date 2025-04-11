@@ -1,0 +1,29 @@
+.loader-overlay {
+  position: fixed; // Position fixe pour couvrir toute la page
+  top: 0;
+  left: 0;
+  width: 100vw; // Pleine largeur
+  height: 100vh; // Pleine hauteur
+  background-color: rgba(255, 255, 255, 0.7); // Fond blanc semi-transparent (ajuste selon ton thème)
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999; // S'assurer qu'il est au-dessus de tout le reste
+  transition: opacity 0.3s ease-in-out; // Effet de fondu optionnel
+
+  .custom-spinner {
+    width: 50px;
+    height: 50px;
+  }
+
+  // Style pour le cercle du spinner PrimeNG (utilise tes variables CSS)
+  :host ::ng-deep .custom-spinner .p-progressspinner-circle {
+      stroke: var(--mycolor-color); // Exemple: utilise ta couleur primaire
+   }
+
+  .loading-text {
+    margin-left: 1rem;
+    color: var(--dark-color); // Utilise une couleur de texte de ton thème
+    font-size: 1.1rem;
+  }
+}

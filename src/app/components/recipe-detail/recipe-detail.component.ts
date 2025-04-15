@@ -1,5 +1,5 @@
 // src/app/components/recipe-detail/recipe-detail.component.ts
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, NgZone, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { Recipe } from '../../models/recipe.model';
@@ -40,7 +40,7 @@ import { MessageModule } from 'primeng/message';
     ConfirmDialogModule,
     ToastModule,
     TooltipModule,
-    ProgressSpinnerModule ,
+    ProgressSpinnerModule,
     MessageModule
   ],
   providers: [
@@ -51,14 +51,16 @@ import { MessageModule } from 'primeng/message';
   styleUrls: ['./recipe-detail.component.scss']
 })
 export class RecipeDetailComponent implements OnInit {
-  recipe: Recipe | null = null;
+  private zone = inject(NgZone);
+
+  recipe = signal<Recipe | null>(null);
   recipeId: string = '';
-  isLoading: boolean = false; // Ajouter pour l'indicateur de chargement
+  isLoading: boolean = false;
   showPrintDialog: boolean = false;
-  // backendBaseUrl n'est plus nécessaire ici si les images viennent de Firebase
-  // readonly backendBaseUrl: string;
 
   isAdmin$: Observable<boolean>;
+  loading = signal<boolean>(true);
+  recipeFound = signal<boolean>(true);
 
   constructor(
     private route: ActivatedRoute,
@@ -68,14 +70,43 @@ export class RecipeDetailComponent implements OnInit {
     private router: Router,
     public authService: AuthService
   ) {
-    // this.backendBaseUrl = this.recipeService.backendBaseUrl; // Plus nécessaire
     this.isAdmin$ = this.authService.isAdmin$;
   }
 
-  ngOnInit(): void {
+  ngOnInit() {
     this.route.paramMap.subscribe(params => {
-      this.recipeId = params.get('id') || '';
-      this.loadRecipe();
+      const id = params.get('id');
+      if (id) {
+        this.recipeId = id; // <-- **CORRECTION : Stocker l'ID ici**
+        this.loading.set(true);
+        this.recipeFound.set(true);
+        this.recipe.set(null); // Réinitialiser la recette précédente
+
+        this.recipeService.getRecipe(this.recipeId).subscribe({ // Utiliser this.recipeId
+          next: (loadedRecipe) => {
+            if (loadedRecipe) {
+              this.recipe.set(loadedRecipe); // Mettre à jour le signal recipe
+              this.recipeFound.set(true);
+            } else {
+              this.recipeFound.set(false);
+              this.recipe.set(null);
+            }
+            this.loading.set(false);
+          },
+          error: (error) => {
+            console.error('Erreur lors du chargement de la recette:', error);
+            this.recipeFound.set(false);
+            this.recipe.set(null);
+            this.loading.set(false);
+          }
+        });
+      } else {
+         // Cas où l'ID n'est pas dans l'URL
+         this.loading.set(false);
+         this.recipeFound.set(false);
+         this.recipe.set(null);
+         this.router.navigate(['/']); // Rediriger si pas d'ID
+      }
     });
   }
 
@@ -84,7 +115,7 @@ export class RecipeDetailComponent implements OnInit {
       this.isLoading = true; // Commencer le chargement
       this.recipeService.getRecipe(this.recipeId).subscribe({
         next: recipe => {
-          this.recipe = recipe || null;
+          this.recipe.set(recipe || null);
           this.isLoading = false; // Fin du chargement (succès)
           if (!recipe) {
             console.warn(`Recipe with ID ${this.recipeId} not found.`);
@@ -110,7 +141,7 @@ export class RecipeDetailComponent implements OnInit {
       return;
     }
 
-    const recipeNameToConfirm = this.recipe.title; // Garder le nom juste pour le message
+    const recipeNameToConfirm = this.recipe()?.title; // Garder le nom juste pour le message
 
     this.confirmationService.confirm({
       message: `Êtes-vous sûr de vouloir supprimer la recette "${recipeNameToConfirm}" ?`,
@@ -131,10 +162,10 @@ export class RecipeDetailComponent implements OnInit {
                   summary: 'Succès',
                   detail: 'La recette a été supprimée'
                 });
-                this.recipe = null; // Effacer la recette de l'affichage
-                setTimeout(() => {
-                  this.router.navigate(['/']); // Rediriger vers l'accueil
-                }, 1500); // Laisser le temps de voir le message Toast
+                this.recipe.set(null); // Effacer la recette de l'affichage
+                this.zone.run(() => {
+                  this.router.navigate(['/'], { replaceUrl: true });
+                });
               } else {
                 // Ce cas 'else' ne devrait pas arriver si le service utilise throwError
                 this.messageService.add({
@@ -172,17 +203,14 @@ export class RecipeDetailComponent implements OnInit {
     window.print();
     this.showPrintDialog = false;
   }
-
+  
   getFullImageUrl(imageUrl: string | undefined): string {
-    const defaultImg = 'assets/images/default-recipe.jpg'; // Chemin local
+    const defaultImg = 'assets/images/default-recipe.jpg';
 
     if (imageUrl && imageUrl.startsWith('https://res.cloudinary.com/')) {
-      // Si c'est une URL Cloudinary valide, on la retourne directement
       return imageUrl;
     }
 
-    // Si imageUrl est vide, null, undefined, ou ne semble pas être une URL Cloudinary,
-    // on retourne l'image par défaut locale.
     return defaultImg;
   }
 }

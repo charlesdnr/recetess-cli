@@ -287,7 +287,8 @@
     font-weight: 600;
   }
 
-  ul, ol {
+  ul,
+  ol {
     padding-left: 20px;
     margin-bottom: 20px;
 
@@ -324,49 +325,105 @@
   }
 }
 
-/* Styles pour l'impression */
+
 @media print {
+  /* --- Styles d'impression Spécifiques Compactés --- */
+
+  /* Cacher éléments non nécessaires (inchangé) */
   .back-navigation,
   .recipe-actions,
-  :host ::ng-deep p-button,
-  :host ::ng-deep .p-tabview-nav,
-  :host ::ng-deep .p-toast,
-  :host ::ng-deep .p-dialog-mask {
+  p-divider,
+  .recipe-image-container .recipe-image { // Cacher l'image par défaut
     display: none !important;
+    visibility: hidden !important;
   }
 
-  .container {
-    width: 100%;
-    padding: 0;
-    margin: 0;
-  }
-
-  .recipe-header {
-    padding: 0;
-    background: none;
-
-    h1 {
-      color: var(--dark-color);
-    }
-  }
-
-  .recipe-content {
-    display: block;
-    padding: 0;
-  }
-
-  .recipe-meta {
-    margin: 1rem 0;
-  }
-
-  :host ::ng-deep .p-tabview-panels {
+  /* Assurer visibilité des éléments principaux (inchangé) */
+  .container, p-card, .recipe-header, .recipe-meta, .recipe-content,
+  .recipe-description, .recipe-ingredients, .recipe-preparation {
     display: block !important;
-    border: none;
-    padding: 0;
+    visibility: visible !important;
   }
 
-  :host ::ng-deep .p-card {
-    box-shadow: none;
-    border: none;
+  /* Reset style carte (inchangé) */
+  p-card {
+    box-shadow: none !important; border: none !important; padding: 0 !important;
+    margin: 0 !important; border-radius: 0 !important;
   }
-}
+
+  /* --- Réduction tailles et espacements --- */
+
+  /* Titre principal */
+  .recipe-header h1 {
+    font-size: 14pt !important; /* Réduit */
+    margin-bottom: 0.3cm !important; /* Réduit */
+  }
+  /* Titres de section */
+  h3 {
+    font-size: 11pt !important; /* Réduit */
+    margin-top: 0.4cm !important; /* Réduit */
+    margin-bottom: 0.2cm !important; /* Réduit */
+  }
+
+  /* Métadonnées (temps, pers., etc.) */
+  .recipe-meta {
+    margin-top: 0.2cm !important; /* Réduit */
+    margin-bottom: 0.2cm !important; /* Réduit */
+    gap: 4px 8px !important; /* Réduit */
+    justify-content: flex-start; /* Aligner à gauche peut économiser de l'espace vs center */
+  }
+  .meta-item {
+    padding: 2px 4px !important; /* Réduit */
+    margin-bottom: 2px !important; // Ajouté pour réduire l'espace si ça wrap
+  }
+  .meta-item, .meta-content .meta-value {
+    font-size: 8pt !important; /* Réduit */
+  }
+  .meta-item i {
+    font-size: 9pt !important; /* Réduit */
+    margin-right: 3px !important; /* Réduit */
+  }
+  .meta-content .meta-label {
+    font-size: 7pt !important; /* Réduit */
+  }
+
+  /* Description */
+  .recipe-description p {
+    font-size: 9pt !important; /* Taille de base */
+    line-height: 1.25 !important; /* Réduit */
+    margin-bottom: 0.2cm !important; /* Réduit */
+  }
+
+  /* Listes ingrédients et étapes */
+  .ingredients-list, .steps-list {
+    margin-bottom: 0.2cm !important; /* Réduit */
+    gap: 1px !important; /* Réduit si flex/grid */
+  }
+  ul, ol {
+    padding-left: 0.5cm !important; /* Réduit */
+    margin-top: 0.1cm !important;
+    margin-bottom: 0.1cm !important;
+  }
+  li, .ingredient-item, .step-item {
+    margin-bottom: 1px !important; /* Réduit */
+    padding: 1px 0 !important; /* Réduit */
+    font-size: 9pt !important; /* Taille de base */
+    line-height: 1.2 !important; /* Réduit */
+  }
+  .ingredient-item i { /* Puces */
+    font-size: 4pt !important; /* Très petites puces */
+    margin-right: 4px !important;
+  }
+  .step-number {
+    font-size: 9pt !important;
+    line-height: 1.2 !important;
+    min-width: 1.3em !important; /* Ajuster si besoin */
+    padding-right: 0.3em !important;
+    padding-top: 1px !important;
+  }
+  .step-text {
+    padding: 0 !important; /* Pas de padding interne pour le texte d'étape */
+    line-height: 1.2 !important;
+  }
+
+} 

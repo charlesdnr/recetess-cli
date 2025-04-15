@@ -368,3 +368,57 @@ h3 {
     }
   }
 }
+
+
+.ingredient-row {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.ingredient-item-cdk {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  width: 100%;
+}
+
+.item-content {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex: 1;
+}
+
+.drag-handle {
+  display: flex;
+  align-items: center;
+  margin-right: 10px;
+  cursor: move;
+}
+
+.step-item-cdk {
+  display: flex;
+  align-items: flex-start;
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.drag-handle {
+  margin-right: 10px;
+  cursor: move;
+  padding-top: 8px; /* Pour aligner avec le début du texte */
+}
+
+.step-number {
+  padding-top: 8px; /* Pour aligner avec le début du texte */
+}
+
+.step-input {
+  flex: 1;
+}
+
+textarea.p-inputtext-sm {
+  width: 100%;
+  resize: vertical; /* Permet à l'utilisateur de redimensionner verticalement */
+}

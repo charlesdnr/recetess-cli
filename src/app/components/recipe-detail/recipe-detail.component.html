@@ -1,30 +1,29 @@
+@let $recipe = recipe();
+
 <p-toast></p-toast>
 <p-confirmDialog
   header="Confirmation"
   icon="pi pi-exclamation-triangle"
 ></p-confirmDialog>
-@if (recipe) {
-<div class="container mt-3"></div>
-} @else {
-<div class="container text-center p-4">
-  <p-message severity="warn" text="Recette non trouvée."></p-message>
-  <p-button
-    label="Retour à l'accueil"
-    icon="pi pi-home"
-    styleClass="p-button-secondary mt-3"
-    routerLink="/"
-  ></p-button>
-</div>
-}
 
-<div class="container mt-3" *ngIf="!isLoading && recipe">
+@if (loading()) {
+<div class="container text-center p-4">
+  <p-progressSpinner
+    styleClass="w-4rem h-4rem"
+    strokeWidth="8"
+    animationDuration=".8s"
+  ></p-progressSpinner>
+  <p class="mt-2">Chargement de la recette...</p>
+</div>
+} @else { @if (recipeFound() && $recipe) {
+<div class="container mt-3">
   <div class="back-navigation mb-3">
     <a
-      [routerLink]="['/category', recipe.category, recipe.subcategory || '']"
+      [routerLink]="['/category', $recipe.category, $recipe.subcategory || '']"
       class="back-link"
     >
       <i class="pi pi-arrow-left mr-1"></i> Retour à
-      {{ recipe.subcategory || recipe.category }}
+      {{ $recipe.subcategory || $recipe.category }}
     </a>
   </div>
 
@@ -32,12 +31,12 @@
     <ng-template pTemplate="header">
       <div class="recipe-header p-3 border-bottom-1 surface-border">
         <div class="recipe-title">
-          <h1>{{ recipe.title }}</h1>
+          <h1>{{ $recipe.title }}</h1>
           <div
             class="recipe-tags mt-2"
-            *ngIf="recipe.tags && recipe.tags.length > 0"
+            *ngIf="$recipe.tags && $recipe.tags.length > 0"
           >
-            @for (tag of recipe.tags; track $index) {
+            @for (tag of recipe()?.tags; track $index) {
             <p-tag severity="info" value="{{ tag }}" class="mr-1"></p-tag>
             } @empty { }
           </div>
@@ -53,7 +52,7 @@
             <p-button
               icon="pi pi-pencil"
               styleClass="p-button-text p-button-info"
-              [routerLink]="['/edit-recipe', recipe.id]"
+              [routerLink]="['/edit-recipe', $recipe.id]"
               pTooltip="Modifier"
             ></p-button>
             <p-button
@@ -72,28 +71,28 @@
         <i class="pi pi-clock"></i>
         <div class="meta-content">
           <span class="meta-label">Préparation</span>
-          <span class="meta-value">{{ recipe.prepTime }} min</span>
+          <span class="meta-value">{{ $recipe.prepTime }} min</span>
         </div>
       </div>
       <div class="meta-item">
         <i class="pi pi-clock"></i>
         <div class="meta-content">
           <span class="meta-label">Cuisson</span>
-          <span class="meta-value">{{ recipe.cookTime }} min</span>
+          <span class="meta-value">{{ $recipe.cookTime }} min</span>
         </div>
       </div>
       <div class="meta-item">
         <i class="pi pi-users"></i>
         <div class="meta-content">
           <span class="meta-label">Personnes</span>
-          <span class="meta-value">{{ recipe.servings }}</span>
+          <span class="meta-value">{{ $recipe.servings }}</span>
         </div>
       </div>
-      <div class="meta-item" *ngIf="recipe.difficulty">
+      <div class="meta-item" *ngIf="$recipe.difficulty">
         <i class="pi pi-star"></i>
         <div class="meta-content">
           <span class="meta-label">Difficulté</span>
-          <span class="meta-value">{{ recipe.difficulty }}</span>
+          <span class="meta-value">{{ $recipe.difficulty }}</span>
         </div>
       </div>
     </div>
@@ -104,32 +103,32 @@
       <div
         class="col-12 md:col-4 recipe-image-container"
         *ngIf="
-          recipe.imageUrl &&
-          getFullImageUrl(recipe.imageUrl) !==
+          $recipe.imageUrl &&
+          getFullImageUrl($recipe.imageUrl) !==
             'assets/images/default-recipe.jpg'
         "
       >
         <div class="recipe-image">
-          <img [src]="getFullImageUrl(recipe.imageUrl)" [alt]="recipe.title" />
+          <img [src]="getFullImageUrl($recipe.imageUrl)" [alt]="$recipe.title" />
         </div>
       </div>
 
       <div
         [ngClass]="{
           'col-12':
-            !recipe.imageUrl ||
-            getFullImageUrl(recipe.imageUrl) ===
+            !$recipe.imageUrl ||
+            getFullImageUrl($recipe.imageUrl) ===
               'assets/images/default-recipe.jpg',
           'col-12 md:col-8':
-            recipe.imageUrl &&
-            getFullImageUrl(recipe.imageUrl) !==
+          $recipe.imageUrl &&
+            getFullImageUrl($recipe.imageUrl) !==
               'assets/images/default-recipe.jpg'
         }"
       >
-        @if(recipe.description.length != 0){
+        @if($recipe.description && $recipe.description.length > 0){
         <div class="recipe-description mb-4">
           <h3>Description</h3>
-          <p>{{ recipe.description }}</p>
+          <p>{{ $recipe.description }}</p>
         </div>
         <p-divider layout="horizontal"></p-divider>
         }
@@ -137,7 +136,7 @@
         <div class="recipe-ingredients mb-4">
           <h3>Ingrédients</h3>
           <div class="ingredients-list">
-            @for (ingredient of recipe.ingredients; track ingredient.name; let
+            @for (ingredient of $recipe.ingredients; track ingredient.name; let
             idx = $index) {
             <div class="ingredient-item">
               <i
@@ -160,7 +159,7 @@
         <div class="recipe-preparation">
           <h3>Préparation</h3>
           <div class="steps-list">
-            @for (step of recipe.instructions; track $index; let idx = $index) {
+            @for (step of $recipe.instructions; track $index; let idx = $index) {
             <div class="step-item">
               <div class="step-number">{{ idx + 1 }}.</div>
               <div class="step-text">{{ step }}</div>
@@ -174,8 +173,8 @@
     </div>
   </p-card>
 </div>
-
-<div class="container text-center p-4" *ngIf="!isLoading && !recipe">
+} @else {
+<div class="container text-center p-4">
   <p-message severity="warn" text="Recette non trouvée."></p-message>
   <p-button
     label="Retour à l'accueil"
@@ -184,6 +183,7 @@
     routerLink="/"
   ></p-button>
 </div>
+} }
 
 <p-dialog
   [(visible)]="showPrintDialog"
@@ -194,19 +194,19 @@
   [resizable]="false"
 >
   <div class="print-preview" *ngIf="recipe">
-    <h2>{{ recipe.title }}</h2>
+    <h2>{{ recipe()?.title }}</h2>
     <div class="print-meta">
-      <span *ngIf="recipe.prepTime"
-        >Préparation: {{ recipe.prepTime }} min</span
+      <span *ngIf="recipe()?.prepTime"
+        >Préparation: {{ recipe()?.prepTime }} min</span
       >
-      <span *ngIf="recipe.cookTime">Cuisson: {{ recipe.cookTime }} min</span>
-      <span *ngIf="recipe.servings">Personnes: {{ recipe.servings }}</span>
-      <span *ngIf="recipe.difficulty">Difficulté: {{ recipe.difficulty }}</span>
+      <span *ngIf="recipe()?.cookTime">Cuisson: {{ recipe()?.cookTime }} min</span>
+      <span *ngIf="recipe()?.servings">Personnes: {{ recipe()?.servings }}</span>
+      <span *ngIf="recipe()?.difficulty">Difficulté: {{ recipe()?.difficulty }}</span>
     </div>
     <div class="print-ingredients mt-3">
       <h3>Ingrédients</h3>
       <ul>
-        @for (ingredient of recipe.ingredients; track ingredient.name) {
+        @for (ingredient of recipe()?.ingredients; track ingredient.name) {
         <li>
           {{ ingredient.quantity }} {{ ingredient.unit }} {{ ingredient.name }}
         </li>
@@ -216,7 +216,7 @@
     <div class="print-steps mt-3">
       <h3>Préparation</h3>
       <ol>
-        @for (step of recipe.instructions; track $index) {
+        @for (step of recipe()?.instructions; track $index) {
         <li>{{ step }}</li>
         }
       </ol>

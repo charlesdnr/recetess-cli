@@ -68,7 +68,7 @@ export class SearchResultsComponent implements OnInit {
   // Fonction pour obtenir l'URL complète de l'image (similaire à category.component)
   getFullImageUrl(imageUrl: string | undefined): string {
     const defaultImg = 'assets/images/default-recipe.jpg';
-    if (imageUrl && imageUrl.startsWith('https://storage.googleapis.com/')) {
+    if (imageUrl && imageUrl.startsWith('https://res.cloudinary.com/')) {
       return imageUrl;
     }
     return defaultImg;

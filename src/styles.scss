@@ -1,3 +1,81 @@
+@layer app-styles, primeng; // Assurez-vous que ceci est au début si vous utilisez les couches CSS de PrimeNG
+
+@layer app-styles {
+  // ... vos autres styles d'application ...
+
+  // --- Styles d'impression Globaux ---
+  @media print {
+    /* Masquer l'en-tête et le pied de page principaux */
+    .app-header,
+    .app-footer {
+      display: none !important;
+      visibility: hidden !important; // Double sécurité
+    }
+
+    /* Le corps prend toute la place, fond blanc */
+    body {
+      padding: 0 !important;
+      margin: 0 !important;
+      background-color: #ffffff !important;
+      overflow: visible !important;
+      width: 100% !important;
+      height: auto !important;
+      color: #000000 !important; /* Texte noir par défaut */
+    }
+
+    /* Le conteneur principal du contenu doit s'adapter */
+    .app-content {
+      margin: 0 !important;
+      padding: 1cm !important; /* Marges d'impression */
+      max-width: none !important;
+      width: auto !important; /* ou 100% */
+      box-shadow: none !important;
+      border: none !important;
+    }
+
+     /* Cacher tous les éléments flottants ou modaux globalement */
+     app-global-loader, /* Cacher le loader global */
+     .p-toast, .p-toast-message, /* Cacher les toasts */
+     .p-dialog-mask, .p-dialog, /* Cacher TOUTES les boîtes de dialogue et leurs masques */
+     .p-tooltip, .p-tooltip-text /* Cacher les tooltips */
+      {
+       display: none !important;
+       visibility: hidden !important;
+     }
+
+     /* Forcer la couleur du texte en noir et fond transparent par défaut */
+     * {
+       color: #000000 !important;
+       background: transparent !important;
+       box-shadow: none !important;
+       text-shadow: none !important;
+     }
+
+     /* Éviter les coupures inopinées */
+     h1, h2, h3, h4, h5, h6 {
+        page-break-after: avoid;
+     }
+     ul, ol, li, p {
+        page-break-inside: avoid;
+     }
+     img {
+        max-width: 100% !important; /* Empêcher les images de déborder */
+        page-break-inside: avoid;
+     }
+     a, a:visited {
+        text-decoration: underline; /* Souligner les liens pour l'impression */
+     }
+     abbr[title]:after {
+       content: " (" attr(title) ")";
+     }
+     /* Cacher les liens qui pointent vers du JS ou des ancres inutiles */
+     a[href^="javascript:"], a[href^="#"] {
+        /* display: none !important; /* Ou juste ne pas afficher l'URL */
+        &:after { content: ""; }
+     }
+  }
+}
+
 :root {
   /* Palette de couleurs principale */
   --mycolor-color: #FF6978;    /* Rose-corail */

@@ -1,47 +1,44 @@
-/* Styles pour image-upload.component.scss */
+::ng-deep .p-button {
+  min-width: 0px;
+}
 .image-upload-container {
-  border: 1px solid var(--surface-border);
-  border-radius: var(--border-radius);
-  padding: 1.5rem;
-  background-color: var(--surface-section);
-}
-
-.image-upload-label {
-  display: block;
-  margin-bottom: 1rem;
-  font-weight: 500;
-  color: var(--text-color);
-}
-
-:host ::ng-deep {
-  /* Cible les styles internes de p-fileupload en mode basic */
-  .p-fileupload.p-fileupload-basic {
-     display: inline-block; /* Pour que le bouton Vider s'aligne */
-   }
-
-  .p-button.p-button-sm {
-      font-size: 0.875rem;
-      padding: 0.5rem 1rem;
-    }
-
-  .p-fileupload-input {
-      display: none !important; /* Cache l'input moche du mode basic si nécessaire */
-    }
-}
-
-
-.preview-zone {
-  min-height: 150px; /* Donne une taille minimale à la zone */
   display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: var(--surface-ground);
+  flex-direction: column;
+  margin-bottom: 1rem;
 
-  &.has-selection, &.has-initial {
-     background-color: var(--surface-a);
-   }
+  .image-upload-label {
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+  }
+
+  .preview-container {
+    margin-top: 1rem;
+    display: flex;
+    justify-content: center;
+
+    .preview-image {
+      max-width: 100%;
+      max-height: 200px;
+      object-fit: contain;
+      border-radius: 4px;
+    }
+  }
+
+  .remove-initial-image {
+    margin-top: 1rem;
+    display: flex;
+    justify-content: center;
+  }
 }
 
-.preview-image {
-  border-radius: var(--border-radius);
+::ng-deep .image-uploader-control {
+  .p-fileupload-content {
+    display: flex;
+    flex-direction: column;
+  }
+}
+::ng-deep .p-fileupload-file {
+  .p-button {
+    display: none;
+  }
 }

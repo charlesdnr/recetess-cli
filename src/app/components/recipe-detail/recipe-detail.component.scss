@@ -33,7 +33,7 @@
   padding: 1.5rem;
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;  
+  align-items: flex-start;
 
   .recipe-title {
     h1 {
@@ -70,10 +70,6 @@
 
       &:hover {
         background-color: rgba(255, 255, 255, 0.1);
-      }
-
-      &.p-button-danger:hover {
-        background-color: rgba(255, 105, 120, 0.2);
       }
     }
   }

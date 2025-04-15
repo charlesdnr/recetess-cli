@@ -13,21 +13,19 @@
   justify-content: flex-start;
   flex-wrap: wrap;
 
-  .logo-img{
+  .logo-img {
     display: flex;
     justify-content: center;
     align-items: center;
     flex: 1;
-    max-width: 200px;
+    max-width: 400px;
 
-    img{
+    img {
       width: 7rem;
       height: 7rem;
       object-fit: cover;
     }
   }
-
-
 
   .header-content {
     flex: 9;
@@ -115,9 +113,20 @@
   }
 }
 
+@media (max-width: 568px) {
+  .logo {
+    display: none !important;
+  }
+}
+
 .header-end-section {
   display: flex;
   gap: 10px;
   align-items: center;
   justify-content: center;
+}
+
+
+::ng-deep .p-button {
+  min-width: 127px;
 }

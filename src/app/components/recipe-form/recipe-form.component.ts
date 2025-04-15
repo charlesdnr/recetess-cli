@@ -2,10 +2,11 @@
 import {
   Component,
   OnInit,
-  inject, // Use inject
-  signal, // Use signal
-  ChangeDetectionStrategy, // Use OnPush
-  computed // Optional: for derived state
+  inject,
+  signal,
+  ChangeDetectionStrategy,
+  computed,
+  ChangeDetectorRef // Ajout de ChangeDetectorRef
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, ActivatedRoute, Router } from '@angular/router';
@@ -85,7 +86,7 @@ export class RecipeFormComponent implements OnInit {
   private recipeService = inject(RecipeService);
   private messageService = inject(MessageService);
   private confirmationService = inject(ConfirmationService);
-  // No ChangeDetectorRef needed usually
+  private cdr = inject(ChangeDetectorRef); // Injecter le ChangeDetectorRef pour OnPush
 
   // --- Form Definition (remains ReactiveFormsModule) ---
   recipeForm!: FormGroup;
@@ -135,8 +136,8 @@ export class RecipeFormComponent implements OnInit {
           if (recipe) {
             this.populateForm(recipe);
           } else {
-             this.messageService.add({ severity: 'error', summary: 'Erreur', detail: 'Recette non trouvée.' });
-             this.router.navigate(['/']); // Redirect if not found
+            this.messageService.add({ severity: 'error', summary: 'Erreur', detail: 'Recette non trouvée.' });
+            this.router.navigate(['/']); // Redirect if not found
           }
         } catch (err) {
           console.error("Error loading recipe for edit:", err);
@@ -146,10 +147,10 @@ export class RecipeFormComponent implements OnInit {
           this.loading.set(false);
         }
       } else {
-         // Reset potentially loaded URL if navigating from edit to new
-         this.loadedRecipeImageUrl.set(null);
-         this.selectedImageFile.set(null); // Ensure file signal is reset too
-         // Form is already initialized, no loading needed
+        // Reset potentially loaded URL if navigating from edit to new
+        this.loadedRecipeImageUrl.set(null);
+        this.selectedImageFile.set(null); // Ensure file signal is reset too
+        // Form is already initialized, no loading needed
       }
     });
 
@@ -159,12 +160,10 @@ export class RecipeFormComponent implements OnInit {
       this.updateSubcategories(categoryName);
       // Ensure subcategory value is reset if category changes and it's no longer valid
       if (!this.subcategories.some(sub => sub.value === this.recipeForm.get('subcategory')?.value)) {
-          this.recipeForm.get('subcategory')?.setValue('', { emitEvent: false });
+        this.recipeForm.get('subcategory')?.setValue('', { emitEvent: false });
       }
     });
   }
-
-  // initForm, createIngredientGroup, ingredients getter, add/remove Ingredient/Instruction remain largely the same
 
   initForm(): void {
     this.recipeForm = this.fb.group({
@@ -176,20 +175,24 @@ export class RecipeFormComponent implements OnInit {
       cookTime: [null, [Validators.required, Validators.min(0)]],
       servings: [null, [Validators.required, Validators.min(1)]],
       difficulty: ['', Validators.required],
-      ingredients: this.fb.array([this.createIngredientGroup()], Validators.required),
-      instructions: this.fb.array([this.fb.control('', Validators.required)], Validators.required),
+      ingredients: this.fb.array([], Validators.required), // Initialisé vide
+      instructions: this.fb.array([], Validators.required), // Initialisé vide
       imageUrl: [null as string | null], // Stores the *final* URL after potential upload/clear
       tags: [[]],
     });
+
+    // Ajouter un ingrédient et une instruction par défaut
+    this.addIngredient();
+    this.addInstruction();
   }
 
-   createIngredientGroup(ingredient: Ingredient | null = null): FormGroup {
-     return this.fb.group({
-       quantity: [ingredient?.quantity ?? ''],
-       unit: [ingredient?.unit ?? ''],
-       name: [ingredient?.name ?? '', Validators.required]
-     });
-   }
+  createIngredientGroup(ingredient: Ingredient | null = null): FormGroup {
+    return this.fb.group({
+      quantity: [ingredient?.quantity || ''],
+      unit: [ingredient?.unit || ''],
+      name: [ingredient?.name || '', Validators.required]
+    });
+  }
 
   loadCategories(): void {
     // Keep async loading, update local arrays
@@ -205,12 +208,15 @@ export class RecipeFormComponent implements OnInit {
         if (this.isEditMode() && this.recipeForm.get('category')?.value) {
           this.updateSubcategories(this.recipeForm.get('category')?.value);
           const currentSubcategory = this.recipeForm.get('subcategory')?.value;
-           if (currentSubcategory && !this.subcategories.some(sub => sub.value === currentSubcategory)) {
-              this.recipeForm.get('subcategory')?.setValue('', { emitEvent: false });
-           } else if (currentSubcategory) {
-               this.recipeForm.get('subcategory')?.enable({ emitEvent: false }); // Ensure enabled if valid
-           }
+          if (currentSubcategory && !this.subcategories.some(sub => sub.value === currentSubcategory)) {
+            this.recipeForm.get('subcategory')?.setValue('', { emitEvent: false });
+          } else if (currentSubcategory) {
+            this.recipeForm.get('subcategory')?.enable({ emitEvent: false }); // Ensure enabled if valid
+          }
         }
+
+        // Force la détection des changements après mise à jour des catégories
+        this.cdr.detectChanges();
       },
       error: err => {
         console.error("Error loading categories:", err);
@@ -220,6 +226,17 @@ export class RecipeFormComponent implements OnInit {
   }
 
   populateForm(recipe: Recipe): void {
+    console.log(recipe);
+
+    // Réinitialiser d'abord les FormArrays
+    while (this.ingredients.length !== 0) {
+      this.ingredients.removeAt(0);
+    }
+
+    while (this.instructions.length !== 0) {
+      this.instructions.removeAt(0);
+    }
+
     this.recipeForm.patchValue({
       title: recipe.title,
       description: recipe.description,
@@ -235,29 +252,37 @@ export class RecipeFormComponent implements OnInit {
 
     this.loadedRecipeImageUrl.set(recipe.imageUrl || null); // Update the signal for initial display
 
-    // Handle FormArrays (unchanged logic)
-    this.clearFormArray(this.ingredients);
-    (recipe.ingredients || []).forEach(ingredient => {
-      this.ingredients.push(this.createIngredientGroup(ingredient));
-    });
-    if (this.ingredients.length === 0) this.addIngredient();
+    // Ajouter les ingrédients
+    if (recipe.ingredients && recipe.ingredients.length > 0) {
+      recipe.ingredients.forEach(ing => {
+        this.ingredients.push(this.createIngredientGroup(ing));
+      });
+    } else {
+      this.addIngredient(); // Au moins un ingrédient vide
+    }
 
-    this.clearFormArray(this.instructions);
-    (recipe.instructions || []).forEach(instruction => {
-      this.instructions.push(this.fb.control(instruction, Validators.required));
-    });
-    if (this.instructions.length === 0) this.addInstruction();
+    // Ajouter les instructions
+    if (recipe.instructions && recipe.instructions.length > 0) {
+      recipe.instructions.forEach(inst => {
+        this.instructions.push(this.fb.control(inst, Validators.required));
+      });
+    } else {
+      this.addInstruction(); // Au moins une instruction vide
+    }
 
     // Enable/disable subcategory based on loaded data
     this.updateSubcategories(recipe.category);
     if (!recipe.subcategory) {
-         this.recipeForm.get('subcategory')?.disable({ emitEvent: false });
+      this.recipeForm.get('subcategory')?.disable({ emitEvent: false });
     } else {
-         this.recipeForm.get('subcategory')?.enable({ emitEvent: false });
+      this.recipeForm.get('subcategory')?.enable({ emitEvent: false });
     }
 
     this.selectedImageFile.set(null); // Reset any selected file when populating
     this.loading.set(false); // Already handled in ngOnInit's finally block, but safe to keep
+
+    // Force la détection des changements après population du formulaire
+    this.cdr.detectChanges();
   }
 
   updateSubcategories(categoryName: string | null): void {
@@ -280,22 +305,74 @@ export class RecipeFormComponent implements OnInit {
       subcategoryControl?.disable({ emitEvent: false });
       subcategoryControl?.setValue('', { emitEvent: false });
     }
+
+    // Force la détection des changements après mise à jour des sous-catégories
+    this.cdr.detectChanges();
   }
 
+  // --- Form Array Getters/Methods (NOUVELLE IMPLÉMENTATION) ---
+  get ingredients(): FormArray {
+    return this.recipeForm.get('ingredients') as FormArray;
+  }
 
-  // --- Form Array Getters/Methods (Unchanged) ---
-  get ingredients(): FormArray { return this.recipeForm.get('ingredients') as FormArray; }
-  getIngredientGroup(index: number): FormGroup { return this.ingredients.at(index) as FormGroup; }
-  addIngredient(): void { this.ingredients.push(this.createIngredientGroup()); }
+  getIngredientGroup(index: number): FormGroup {
+    return this.ingredients.at(index) as FormGroup;
+  }
+
+  addIngredient(): void {
+    this.ingredients.push(this.createIngredientGroup());
+    this.cdr.detectChanges(); // Force la détection des changements
+  }
+
+  // NOUVELLE MÉTHODE DE SUPPRESSION DES INGRÉDIENTS
   removeIngredient(index: number): void {
-    if (this.ingredients.length > 1) this.ingredients.removeAt(index);
-    else this.messageService.add({ severity: 'warn', summary: 'Attention', detail: 'Au moins un ingrédient requis.' });
+    if (this.ingredients.length <= 1) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Attention',
+        detail: 'Au moins un ingrédient est requis'
+      });
+      return;
+    }
+
+    // Méthode directe de suppression
+    this.ingredients.removeAt(index);
+
+    // Force mise à jour du formulaire
+    this.recipeForm.updateValueAndValidity();
+    this.cdr.detectChanges(); // Force la détection des changements
+
+    console.log('Ingrédient supprimé, nombre restant:', this.ingredients.length);
   }
-  get instructions(): FormArray { return this.recipeForm.get('instructions') as FormArray; }
-  addInstruction(): void { this.instructions.push(this.fb.control('', Validators.required)); }
+
+  get instructions(): FormArray {
+    return this.recipeForm.get('instructions') as FormArray;
+  }
+
+  addInstruction(): void {
+    this.instructions.push(this.fb.control('', Validators.required));
+    this.cdr.detectChanges(); // Force la détection des changements
+  }
+
+  // NOUVELLE MÉTHODE DE SUPPRESSION DES INSTRUCTIONS
   removeInstruction(index: number): void {
-    if (this.instructions.length > 1) this.instructions.removeAt(index);
-    else this.messageService.add({ severity: 'warn', summary: 'Attention', detail: 'Au moins une étape requise.' });
+    if (this.instructions.length <= 1) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Attention',
+        detail: 'Au moins une étape est requise'
+      });
+      return;
+    }
+
+    // Méthode directe de suppression
+    this.instructions.removeAt(index);
+
+    // Force mise à jour du formulaire
+    this.recipeForm.updateValueAndValidity();
+    this.cdr.detectChanges(); // Force la détection des changements
+
+    console.log('Instruction supprimée, nombre restant:', this.instructions.length);
   }
   // -------------------------------------------
 
@@ -343,21 +420,21 @@ export class RecipeFormComponent implements OnInit {
       // 2. Prepare Payload
       const formValue = this.recipeForm.getRawValue();
       const finalIngredients = (formValue.ingredients || [])
-          .map((ing: any) => ({
-            quantity: ing.quantity,
-            unit: ing.unit?.trim() ?? '',
-            name: ing.name?.trim() ?? '',
-          }))
-          .filter((ing: Ingredient) => ing.name);
+        .map((ing: any) => ({
+          quantity: ing.quantity,
+          unit: ing.unit?.trim() ?? '',
+          name: ing.name?.trim() ?? '',
+        }))
+        .filter((ing: Ingredient) => ing.name);
 
       const finalInstructions = (formValue.instructions || [])
-          .map((inst: string) => inst?.trim() ?? '')
-          .filter((inst: string) => inst);
+        .map((inst: string) => inst?.trim() ?? '')
+        .filter((inst: string) => inst);
 
       const finalSubcategory = formValue.subcategory || null;
       const finalTags = (formValue.tags || [])
-          .map((tag: string) => tag?.trim())
-          .filter((tag: string | null): tag is string => tag !== null && tag !== '');
+        .map((tag: string) => tag?.trim())
+        .filter((tag: string | null): tag is string => tag !== null && tag !== '');
 
 
       const payloadToSend: Partial<Recipe> = {
@@ -390,8 +467,8 @@ export class RecipeFormComponent implements OnInit {
         this.resetFormAndSignals(); // Reset state
         setTimeout(() => { this.router.navigate(['/recipe', savedRecipe.id]); }, 1000);
       } else {
-          // Should not happen if saveRecipe throws error on failure
-          this.messageService.add({ severity: 'warn', summary: 'Attention', detail: 'Réponse serveur inattendue après sauvegarde.' });
+        // Should not happen if saveRecipe throws error on failure
+        this.messageService.add({ severity: 'warn', summary: 'Attention', detail: 'Réponse serveur inattendue après sauvegarde.' });
       }
 
     } catch (err: any) {
@@ -423,9 +500,9 @@ export class RecipeFormComponent implements OnInit {
 
   resetFormAndSignals(): void {
     const defaultValues = {
-        title: '', description: '', category: '', subcategory: '',
-        prepTime: null, cookTime: null, servings: null, difficulty: '',
-        imageUrl: null, tags: []
+      title: '', description: '', category: '', subcategory: '',
+      prepTime: null, cookTime: null, servings: null, difficulty: '',
+      imageUrl: null, tags: []
     };
     this.recipeForm.reset(defaultValues);
 
@@ -440,8 +517,10 @@ export class RecipeFormComponent implements OnInit {
     // Explicitly disable subcategory after reset
     this.recipeForm.get('subcategory')?.disable({ emitEvent: false });
     this.subcategories = []; // Clear subcategory options
-}
 
+    // Force la détection des changements après réinitialisation
+    this.cdr.detectChanges();
+  }
 
   // --- Helpers (Unchanged) ---
   clearFormArray(formArray: FormArray): void {

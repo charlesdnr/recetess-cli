@@ -1,41 +1,33 @@
 import {
   Component,
-  Input,
-  Output,
-  EventEmitter,
-  ViewChild,
-  OnInit,
-  OnChanges,
-  SimpleChanges,
-  inject,
-  signal, // Import signal
-  ChangeDetectionStrategy, // Use OnPush
   input,
   output,
-  viewChild
+  viewChild,
+  OnInit,
+  signal
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FileUpload, FileUploadModule, FileSelectEvent } from 'primeng/fileupload';
+import { FileUpload, FileUploadModule } from 'primeng/fileupload';
 import { ButtonModule } from 'primeng/button';
 import { BadgeModule } from 'primeng/badge';
 import { TooltipModule } from 'primeng/tooltip';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-image-upload',
   standalone: true,
   imports: [
     CommonModule,
-    FileUploadModule, // Import FileUploadModule instead of FileUpload directly
+    FileUploadModule,
     ButtonModule,
     BadgeModule,
-    TooltipModule
+    TooltipModule,
+    FormsModule
   ],
   templateUrl: './image-upload.component.html',
   styleUrls: ['./image-upload.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush // Enable OnPush
 })
-export class ImageUploadComponent implements OnInit, OnChanges {
-  // Inputs remain the same
+export class ImageUploadComponent implements OnInit {
   initialImageUrl = input<string | null>(null);
   label = input('Image');
   maxFileSize = input(100000000);
@@ -46,65 +38,46 @@ export class ImageUploadComponent implements OnInit, OnChanges {
 
   imageUploader = viewChild<FileUpload | undefined>('imageUploader');
 
-  // --- State using Signals ---
-  selectedFile = signal<File | null>(null);
-  previewUrl = signal<string | ArrayBuffer | null>(null);
-  // -------------------------
+  currentImageUrl = signal<string | null>(null);
+  hasFile = signal<boolean>(false);
 
-  // No ChangeDetectorRef needed typically with signals + OnPush
-
-  ngOnInit(): void {
-    this.updatePreviewFromInitial();
-  }
-
-  ngOnChanges(changes: SimpleChanges): void {
-    // Update preview if initial URL changes AND no file is currently selected
-    if (changes['initialImageUrl'] && !this.selectedFile()) {
-      this.updatePreviewFromInitial();
+  ngOnInit() {
+    // Initialiser l'image avec l'URL fournie ou l'image par défaut
+    const initialUrl = this.initialImageUrl();
+    if (initialUrl) {
+      this.currentImageUrl.set(initialUrl);
+      this.hasFile.set(true);
+    } else {
+      this.currentImageUrl.set(this.defaultImage());
+      this.hasFile.set(false);
     }
   }
 
-  private updatePreviewFromInitial(): void {
-    this.previewUrl.set(this.initialImageUrl() || this.defaultImage() || null);
-  }
-
-  onFileSelect(event: FileSelectEvent): void {
-    if (event.currentFiles.length > 0) {
-      const file = event.currentFiles[0];
-      this.selectedFile.set(file);
-      this.showPreview(file); // showPreview will update the previewUrl signal
+  onSelect(event: any) {
+    if (event.files && event.files.length > 0) {
+      const file = event.files[0];
       this.fileSelected.emit(file);
+
+      // Créer URL pour prévisualiser l'image sélectionnée
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        this.currentImageUrl.set(e.target?.result as string);
+        this.hasFile.set(true);
+      };
+      reader.readAsDataURL(file);
     }
   }
 
-  clearSelection(): void {
-    this.selectedFile.set(null);
-    this.previewUrl.set(this.defaultImage() || null); // Reset preview to default/null
-    this.fileSelected.emit(null); // Inform parent
-    this.imageUploader()?.clear(); // Reset PrimeNG component state
+  onClear() {
+    this.currentImageUrl.set(this.defaultImage());
+    this.hasFile.set(false);
+    this.fileSelected.emit(null);
   }
 
-  // Called if p-fileupload itself emits onClear (less likely with our custom button)
-  onInternalClear(): void {
-    if (this.selectedFile()) { // Only if we are actually clearing a selected file
-      this.clearSelection();
+  removeImage() {
+    this.onClear();
+    if (this.imageUploader()) {
+      this.imageUploader()!.clear();
     }
-  }
-
-  showPreview(file: File): void {
-    const reader = new FileReader();
-    reader.onload = (e: any) => {
-      this.previewUrl.set(e.target.result); // Set the signal value
-    };
-    reader.readAsDataURL(file);
-  }
-
-  formatSize(bytes: number): string {
-    if (bytes === 0) { return '0 Bytes'; }
-    const k = 1024;
-    const dm = 2;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
   }
 }

@@ -1,6 +1,15 @@
 <div class="home-container">
   <h1 class="page-title">Catégories de Recettes</h1>
 
+  <div class="view-all-recipes-section mb-4 text-center">
+    <a
+        [routerLink]="['/search']"
+        pButton
+        label="Voir TOUTES les recettes"
+        icon="pi pi-list"
+        styleClass="p-button-raised p-button-secondary"
+    ></a>
+  </div>
   @if (isLoading) {
   <div class="loading-indicator">
     <i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i> Chargement des
@@ -54,7 +63,7 @@
             ></a>
           </div>
         </ng-template>
-        
+
       </p-card>
 
     </div>

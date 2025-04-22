@@ -127,7 +127,7 @@ export class RecipeService {
     this.invalidateRecipeCache();
     this.invalidateCategoryCache();
   }
-  private loadAllRecipesFromApi(): Observable<Recipe[]> {
+  loadAllRecipesFromApi(): Observable<Recipe[]> {
     if (!this.allRecipesCache$) {
       this.allRecipesCache$ = this.http.get<Recipe[]>(this.apiUrl).pipe(
         shareReplay(1), // Cacher le résultat

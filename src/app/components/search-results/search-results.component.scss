@@ -185,3 +185,53 @@
      grid-template-columns: 1fr;
   }
 }
+
+/* src/app/components/search-results/search-results.component.scss */
+// ... (styles existants pour .container, .header, .loading-indicator, .no-results, .recipes-grid, .recipe-card etc.)
+
+/* NOUVEAUX Styles pour l'affichage groupé */
+.grouped-recipes-container {
+  margin-top: 2rem; // Espace au-dessus des groupes
+}
+
+.category-group {
+  margin-bottom: 3rem; // Espace entre les catégories principales
+
+  &:last-child {
+    margin-bottom: 1rem;
+  }
+}
+
+.category-title {
+  font-size: 1.8rem; // Taille pour le titre de catégorie
+  color: var(--primary-color); // Utiliser la couleur primaire (ajuster si besoin)
+  font-weight: 600;
+  margin-bottom: 0.5rem; // Espace avant le divider
+  padding-bottom: 0.5rem;
+}
+
+.subcategory-group {
+  margin-top: 1.5rem; // Espace au-dessus d'une sous-catégorie
+  margin-bottom: 1.5rem; // Espace en dessous
+}
+
+.subcategory-title {
+  font-size: 1.4rem; // Taille pour le titre de sous-catégorie
+  color: var(--secondary-color); // Utiliser la couleur secondaire
+  font-weight: 500;
+  margin-bottom: 1rem; // Espace avant la grille de recettes de la sous-catégorie
+  padding-left: 1rem; // Petit retrait
+  border-left: 3px solid var(--secondary-color); // Ligne décorative
+}
+
+// Ajuster les marges pour les grilles dans les groupes si nécessaire
+.category-group .recipes-grid,
+.subcategory-group .recipes-grid {
+  margin-top: 1rem;
+}
+
+// Styles pour p-divider entre les titres et le contenu
+:host ::ng-deep .category-group > p-divider .p-divider {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+}

@@ -246,6 +246,77 @@
 
       <div class="ingredients-section">
         <h3>Ingrédients*</h3>
+        <div class="quick-add-form p-mb-3">
+          <div
+            [formGroup]="addIngredientForm"
+            class="grid nogutter align-items-center p-fluid container-header-ing"
+          >
+            <div class="col-3 md:col-2 field p-pr-1">
+              <label for="add-qty" class="p-sr-only">Quantité</label>
+              <input
+                  inputId="add-qty"
+                  type="text"
+                  pInputText
+                  placeholder="Qté"
+                  formControlName="quantity"
+                  appAllowNumericFraction
+                  class="p-inputtext-sm"
+                  #addQtyInput
+                  (keydown.ArrowUp)="navigateAddInputs($any($event), 'qty')"    (keydown.ArrowDown)="navigateAddInputs($any($event), 'qty')"
+              />
+            </div>
+            <div class="col-3 md:col-2 field p-pr-1">
+              <label for="add-unit" class="p-sr-only">Unité</label>
+              <input
+                inputId="add-unit"
+                type="text"
+                pInputText
+                placeholder="Unité"
+                formControlName="unit"
+                class="p-inputtext-sm"
+                #addUnitInput (keydown.ArrowUp)="navigateAddInputs($any($event), 'unit')"   (keydown.ArrowDown)="navigateAddInputs($any($event), 'unit')"
+              />
+            </div>
+            <div class="col-5 md:col-6 field p-pr-1">
+              <label for="add-name" class="p-sr-only">Nom</label>
+              <input
+                inputId="add-name"
+                type="text"
+                pInputText
+                placeholder="Nom ingrédient*"
+                formControlName="name"
+                class="p-inputtext-sm"
+                (keyup.enter)="addIngredientFromTopForm()"
+                #addNameInput  (keydown.ArrowUp)="navigateAddInputs($any($event), 'name')"   (keydown.ArrowDown)="navigateAddInputs($any($event), 'name')"
+                [ngClass]="{
+                  'ng-invalid ng-dirty':
+                    addIngredientForm.get('name')?.invalid &&
+                    addIngredientForm.get('name')?.touched
+                }"
+              />
+              <small
+                *ngIf="
+                  addIngredientForm.get('name')?.invalid &&
+                  addIngredientForm.get('name')?.touched
+                "
+                class="p-error"
+                >Nom requis</small
+              >
+            </div>
+            <div class="col-1 text-right">
+              <button
+                pButton
+                type="button"
+                icon="pi pi-plus"
+                (click)="addIngredientFromTopForm()"
+                [disabled]="addIngredientForm.invalid"
+                pTooltip="Ajouter l'ingrédient à la liste"
+                tooltipPosition="top"
+                class="p-button-secondary p-button-sm p-button-icon-only"
+              ></button>
+            </div>
+          </div>
+        </div>
         <div
           cdkDropList
           [cdkDropListData]="ingredients.controls"
@@ -272,6 +343,7 @@
                     pInputText
                     placeholder="Qté"
                     formControlName="quantity"
+                    appAllowNumericFraction
                     class="p-inputtext-sm w-full"
                     [ngClass]="{
                       'ng-invalid ng-dirty':
@@ -335,14 +407,6 @@
             }
           </div>
         </div>
-        <button
-          type="button"
-          pButton
-          icon="pi pi-plus"
-          label="Ajouter un ingrédient"
-          class="p-button-secondary p-button-sm mt-3"
-          (click)="addIngredient()"
-        ></button>
         <small
           *ngIf="
             ingredients.hasError('required') ||
@@ -369,6 +433,51 @@
 
       <div class="steps-section">
         <h3>Étapes de préparation*</h3>
+        <div class="quick-add-form p-mb-3">
+          <div class="grid nogutter align-items-start p-fluid">
+            <div class="col-11 field p-pr-1">
+              <label for="add-instruction" class="p-sr-only"
+                >Nouvelle étape</label
+              >
+              <textarea
+                id="add-instruction"
+                pTextarea
+                [formControl]="addInstructionControl"
+                [rows]="2"
+                placeholder="Taper l'étape et appuyer sur Entrée..."
+                (keyup.enter)="
+                  addInstructionFromTopControl(); $event.preventDefault()
+                "
+                class="w-full p-inputtext-sm"
+                style="resize: vertical"
+                [ngClass]="{
+                  'ng-invalid ng-dirty':
+                    addInstructionControl.invalid &&
+                    addInstructionControl.touched
+                }"
+              ></textarea>
+              <small
+                *ngIf="
+                  addInstructionControl.invalid && addInstructionControl.touched
+                "
+                class="p-error"
+                >Texte requis</small
+              >
+            </div>
+            <div class="col-1 text-right">
+              <button
+                pButton
+                type="button"
+                icon="pi pi-plus"
+                (click)="addInstructionFromTopControl()"
+                [disabled]="addInstructionControl.invalid"
+                pTooltip="Ajouter l'étape à la liste"
+                tooltipPosition="top"
+                class="p-button-secondary p-button-sm p-button-icon-only"
+              ></button>
+            </div>
+          </div>
+        </div>
         <div
           cdkDropList
           [cdkDropListData]="instructions.controls"
@@ -433,14 +542,6 @@
             }
           </div>
         </div>
-        <button
-          type="button"
-          pButton
-          icon="pi pi-plus"
-          label="Ajouter une étape"
-          class="p-button-secondary p-button-sm mt-3"
-          (click)="addInstruction()"
-        ></button>
         <small
           *ngIf="
             instructions.hasError('required') ||

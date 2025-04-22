@@ -18,7 +18,7 @@ import { AuthService } from './services/auth.service';
 import { Category } from './models/recipe.model';
 import { Subscription, Observable } from 'rxjs';
 
-import { GlobalLoaderComponent } from './components/global-loader/global-loader.component'; // <-- Importer le loader
+import { GlobalLoaderComponent } from './components/global-loader/global-loader.component';
 
 @Component({
   selector: 'app-root',
@@ -27,7 +27,7 @@ import { GlobalLoaderComponent } from './components/global-loader/global-loader.
     CommonModule, RouterOutlet, MenubarModule, ButtonModule,
     InputTextModule, DialogModule, PasswordModule, FormsModule,
     ToastModule, InputGroupModule, InputGroupAddonModule,
-    GlobalLoaderComponent, RouterLink // <-- Ajouter le loader aux imports
+    GlobalLoaderComponent, RouterLink
   ],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
@@ -47,14 +47,17 @@ export class AppComponent implements OnInit, OnDestroy {
   private authSub: Subscription | null = null;
 
   displayLoginDialog: boolean = false;
+  adminUsernameInput: string = ''; // Nouveau champ pour le nom d'utilisateur
   adminPasswordInput: string = '';
   loginLoading: boolean = false;
   currentSearchTerm: string = '';
   isAdmin$: Observable<boolean>;
+  currentAdminUsername$: Observable<string | null>; // Observable pour le nom d'utilisateur
   currentYear = new Date().getFullYear();
 
   constructor() {
     this.isAdmin$ = this.authService.isAdmin$;
+    this.currentAdminUsername$ = this.authService.username$; // Récupérer l'observable du username
     this.authService.checkStatusOnLoad()
   }
 
@@ -69,7 +72,6 @@ export class AppComponent implements OnInit, OnDestroy {
     });
   }
 
-
   ngOnDestroy(): void {
     if (this.categorySub) this.categorySub.unsubscribe();
     if (this.authSub) this.authSub.unsubscribe();
@@ -82,7 +84,6 @@ export class AppComponent implements OnInit, OnDestroy {
       this.buildMenu(categories);
     });
   }
-
 
   buildMenu(categories: Category[] = []): void {
     const isAdmin = this.authService.isAuthenticated();
@@ -116,8 +117,8 @@ export class AppComponent implements OnInit, OnDestroy {
     this.cdRef.markForCheck();
   }
 
-
   showLoginDialog(): void {
+    this.adminUsernameInput = ''; // Réinitialiser le champ de nom d'utilisateur
     this.adminPasswordInput = '';
     this.displayLoginDialog = true;
   }
@@ -125,34 +126,42 @@ export class AppComponent implements OnInit, OnDestroy {
   attemptLogin(): void {
     if (!this.adminPasswordInput) return;
     this.loginLoading = true;
-    this.authService.login(this.adminPasswordInput).subscribe({
+
+    // Utiliser la nouvelle méthode de login avec username et password
+    this.authService.login(this.adminUsernameInput, this.adminPasswordInput).subscribe({
         next: success => {
             this.loginLoading = false;
             if (success) {
                 this.displayLoginDialog = false;
-                this.messageService.add({ severity: 'success', summary: 'Connecté', detail: 'Accès admin accordé.' });
+                this.messageService.add({
+                  severity: 'success',
+                  summary: 'Connecté',
+                  detail: `Accès admin accordé ${this.adminUsernameInput ? ' pour ' + this.adminUsernameInput : ''}.`
+                });
                 // Le menu se mettra à jour via l'abonnement à isAdmin$
             } else {
-                this.messageService.add({ severity: 'error', summary: 'Échec', detail: 'Mot de passe incorrect.' });
+                this.messageService.add({ severity: 'error', summary: 'Échec', detail: 'Identifiants incorrects.' });
             }
             this.adminPasswordInput = '';
+            this.adminUsernameInput = '';
         },
         error: () => {
-            // Gérer explicitement l'erreur si le service ne le fait pas déjà (catchError)
-             this.loginLoading = false;
-             this.messageService.add({ severity: 'error', summary: 'Échec', detail: 'Erreur lors de la connexion.' });
-             this.adminPasswordInput = '';
+            this.loginLoading = false;
+            this.messageService.add({ severity: 'error', summary: 'Échec', detail: 'Erreur lors de la connexion.' });
+            this.adminPasswordInput = '';
+            this.adminUsernameInput = '';
         }
     });
-}
-performSearch(): void {
-  const term = this.currentSearchTerm.trim();
-  if (term) {
-    // Naviguer vers la page de résultats de recherche en passant le terme comme query param
-    this.router.navigate(['/search'], { queryParams: { q: term } });
-    this.currentSearchTerm = ''; // Optionnel: vider le champ après la recherche
   }
-}
+
+  performSearch(): void {
+    const term = this.currentSearchTerm.trim();
+    if (term) {
+      // Naviguer vers la page de résultats de recherche en passant le terme comme query param
+      this.router.navigate(['/search'], { queryParams: { q: term } });
+      this.currentSearchTerm = ''; // Optionnel: vider le champ après la recherche
+    }
+  }
 
   logout(): void {
     this.authService.logout();

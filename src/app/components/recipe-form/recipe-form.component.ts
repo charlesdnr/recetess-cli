@@ -7,7 +7,9 @@ import {
   ChangeDetectionStrategy,
   computed,
   ChangeDetectorRef,
-  NgZone
+  NgZone,
+  ViewChild,
+  ElementRef
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, ActivatedRoute, Router } from '@angular/router';
@@ -50,6 +52,7 @@ import { BadgeModule } from 'primeng/badge';
 import { ImageUploadComponent } from '../image-upload/image-upload.component';
 
 import { lastValueFrom } from 'rxjs'; // Import lastValueFrom
+import { AllowNumericFractionDirective } from '../../directives/allow-numeric-fraction.directive';
 // import { OrderListModule } from 'primeng/orderlist'; // <-- Supprimé
 
 @Component({
@@ -78,7 +81,8 @@ import { lastValueFrom } from 'rxjs'; // Import lastValueFrom
     InputGroupModule,
     InputGroupAddonModule,
     ImageUploadComponent,
-    DragDropModule
+    DragDropModule,
+    AllowNumericFractionDirective
   ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './recipe-form.component.html',
@@ -86,6 +90,9 @@ import { lastValueFrom } from 'rxjs'; // Import lastValueFrom
   changeDetection: ChangeDetectionStrategy.OnPush // Enable OnPush
 })
 export class RecipeFormComponent implements OnInit {
+  @ViewChild('addQtyInput') addQtyInputRef!: ElementRef<HTMLInputElement>;
+  @ViewChild('addUnitInput') addUnitInputRef!: ElementRef<HTMLInputElement>; // Nouveau
+  @ViewChild('addNameInput') addNameInputRef!: ElementRef<HTMLInputElement>;
 
   // --- Injected Services ---
   private fb = inject(FormBuilder);
@@ -119,6 +126,8 @@ export class RecipeFormComponent implements OnInit {
     { label: 'Difficile', value: 'Difficile' },
   ];
   filteredTags: string[] = [];
+  addIngredientForm!: FormGroup;
+  addInstructionControl!: FormControl;
   // ---------------------------------------------------
 
   // Computed signal for the initial image URL passed to the child
@@ -135,6 +144,7 @@ export class RecipeFormComponent implements OnInit {
   ngOnInit(): void {
     this.initForm();
     this.loadCategories();
+    this.initAddControls();
 
     // --- Load Recipe Data ---
     this.route.paramMap.subscribe(async params => {
@@ -164,8 +174,6 @@ export class RecipeFormComponent implements OnInit {
         this.loadedRecipeImageUrl.set(null);
         this.selectedImageFile.set(null);
         // S'assurer qu'il y a au moins un champ vide au départ pour nouveau formulaire
-        if (this.ingredients.length === 0) this.addIngredient();
-        if (this.instructions.length === 0) this.addInstruction();
       }
     });
 
@@ -199,11 +207,24 @@ export class RecipeFormComponent implements OnInit {
     // if (!this.isEditMode()) { ... }
   }
 
-  createIngredientGroup(ingredient: Ingredient | null = null): FormGroup {
+  initAddControls(): void {
+    this.addIngredientForm = this.fb.group({
+      // Utiliser null comme valeur initiale pour p-inputNumber
+      quantity: [''], // Ou 0 si vous préférez
+      unit: [''],
+      // Ajouter un validateur requis uniquement pour le nom dans la ligne d'ajout
+      name: ['', Validators.required]
+    });
+
+    this.addInstructionControl = this.fb.control('', Validators.required);
+  }
+
+  createIngredientGroup(ingredient?: Ingredient | null): FormGroup {
     return this.fb.group({
-      quantity: [ingredient?.quantity || ''],
+      // Utiliser null comme valeur par défaut pour le FormArray aussi
+      quantity: [ingredient?.quantity ?? ''],
       unit: [ingredient?.unit || ''],
-      name: [ingredient?.name || '', Validators.required]
+      name: [ingredient?.name || '', Validators.required] // Garder requis pour les éléments de la liste
     });
   }
 
@@ -263,13 +284,13 @@ export class RecipeFormComponent implements OnInit {
     if (recipe.ingredients && recipe.ingredients.length > 0) {
         recipe.ingredients.forEach(ing => this.ingredients.push(this.createIngredientGroup(ing)));
     } else {
-        this.addIngredient(); // Ajouter un champ vide si la recette chargée n'en a pas
+      this.ingredients.push(this.createIngredientGroup()); // Ajouter un champ vide si la recette chargée n'en a pas
     }
 
     if (recipe.instructions && recipe.instructions.length > 0) {
         recipe.instructions.forEach(inst => this.instructions.push(this.createInstructionControl(inst)));
     } else {
-        this.addInstruction(); // Ajouter un champ vide
+      this.instructions.push(this.createInstructionControl()); // Ajouter un champ vide
     }
 
     this.updateSubcategories(recipe.category);
@@ -319,10 +340,6 @@ export class RecipeFormComponent implements OnInit {
   // ---------------------------
 
   // --- Add/Remove Methods ---
-  addIngredient(): void {
-    this.ingredients.push(this.createIngredientGroup());
-    this.cdr.detectChanges(); // Important pour que le template se mette à jour
-  }
 
   removeIngredient(index: number): void {
     if (this.ingredients.length > 1) {
@@ -333,11 +350,70 @@ export class RecipeFormComponent implements OnInit {
       this.messageService.add({ severity: 'warn', summary: 'Attention', detail: 'Au moins un ingrédient est requis' });
     }
   }
+  addInstructionFromTopControl(): void {
+    this.addInstructionControl.markAsTouched(); // Afficher erreur si vide
 
-  addInstruction(): void {
-    this.instructions.push(this.createInstructionControl());
-    this.cdr.detectChanges(); // Important
+    const instructionText = this.addInstructionControl.value?.trim();
+    if (instructionText) {
+        // 1. Créer un nouveau contrôle basé sur la valeur
+        const newFormControl = this.createInstructionControl(instructionText);
+
+        // 2. L'ajouter au FormArray
+        this.instructions.push(newFormControl);
+
+        // 3. Réinitialiser le contrôle d'ajout
+        this.addInstructionControl.reset(''); // Remettre à vide
+        this.addInstructionControl.markAsUntouched();
+        this.addInstructionControl.markAsPristine();
+
+        // 4. Marquer le formulaire principal comme modifié
+        this.recipeForm.markAsDirty();
+
+        // 5. Mettre à jour la vue
+        this.cdr.markForCheck();
+    }
   }
+  addIngredientFromTopForm(): void {
+    // Marquer les contrôles comme 'touchés' pour afficher les erreurs potentielles
+    this.addIngredientForm.markAllAsTouched();
+
+    if (this.addIngredientForm.valid) {
+      // 1. Créer un nouveau groupe basé sur les valeurs du formulaire d'ajout
+      const newIngredientData: Ingredient = this.addIngredientForm.value;
+      const newFormGroup = this.createIngredientGroup(newIngredientData);
+
+      // 2. Ajouter ce nouveau groupe au FormArray principal
+      this.ingredients.push(newFormGroup);
+
+      // 3. Réinitialiser le formulaire d'ajout
+      this.addIngredientForm.reset({ quantity: null, unit: '', name: '' }); // Remettre à null/vide
+      // Optionnel: marquer comme non touché pour cacher les erreurs
+      this.addIngredientForm.markAsUntouched();
+      this.addIngredientForm.markAsPristine();
+
+      this.zone.runOutsideAngular(() => { // Exécuter hors zone Angular pour éviter détections de changements inutiles
+        setTimeout(() => {
+            // Vérifier si la référence existe avant d'appeler focus
+            if (this.addQtyInputRef?.nativeElement) {
+                this.addQtyInputRef.nativeElement.focus();
+                // Optionnel: sélectionner le contenu pour faciliter la saisie suivante
+                // this.addQtyInputRef.nativeElement.select();
+            }
+        }, 0); // Délai 0 pour exécuter après le cycle actuel
+     });
+
+
+      // 4. Marquer le formulaire principal comme modifié
+      this.recipeForm.markAsDirty();
+
+      // 5. Mettre à jour la vue
+      this.cdr.markForCheck();
+    } else {
+      // Optionnel: message si le formulaire d'ajout n'est pas valide (le nom est requis)
+       this.messageService.add({ severity: 'warn', summary: 'Attention', detail: 'Le nom de l\'ingrédient est requis pour l\'ajouter.' });
+    }
+  }
+
 
   removeInstruction(index: number): void {
     if (this.instructions.length > 1) {
@@ -420,7 +496,7 @@ export class RecipeFormComponent implements OnInit {
 
       const finalIngredients = (formValue.ingredients || [])
         .map((ing: any) => ({
-          quantity: typeof ing.quantity === 'number' ? ing.quantity.toString() : (ing.quantity || ''),
+          quantity: ing.quantity || '',
           unit: ing.unit?.trim() ?? '',
           name: ing.name?.trim() ?? '',
         }))
@@ -521,8 +597,12 @@ export class RecipeFormComponent implements OnInit {
     // mais la navigation actuelle la rend moins utile.
     const defaultValues = { /* ... valeurs par défaut ... */ };
     this.recipeForm.reset(defaultValues);
-    this.clearFormArray(this.ingredients); this.addIngredient();
-    this.clearFormArray(this.instructions); this.addInstruction();
+    this.clearFormArray(this.ingredients); // Vider seulement
+    this.clearFormArray(this.instructions); // Vider seulement
+    this.addIngredientForm.reset({ quantity: '', unit: '', name: '' });
+    this.addIngredientForm.markAsUntouched();
+    this.addInstructionControl.reset('');
+    this.addInstructionControl.markAsUntouched();
     this.selectedImageFile.set(null);
     this.loadedRecipeImageUrl.set(null);
     this.recipeForm.get('subcategory')?.disable({ emitEvent: false });
@@ -565,4 +645,43 @@ export class RecipeFormComponent implements OnInit {
     }
     return errors;
   }
+  navigateAddInputs(event: KeyboardEvent, currentField: 'qty' | 'unit' | 'name'): void {
+    // S'assurer que c'est bien une flèche haut/bas (sécurité)
+    if (event.key !== 'ArrowUp' && event.key !== 'ArrowDown') {
+        return;
+    }
+
+    event.preventDefault(); // Empêcher le déplacement du curseur dans l'input
+
+    let targetInputRef: ElementRef<HTMLInputElement> | undefined;
+
+    // Déterminer l'input cible en fonction de la touche et du champ actuel
+    if (event.key === 'ArrowDown') {
+        if (currentField === 'qty') {
+            targetInputRef = this.addUnitInputRef;
+        } else if (currentField === 'unit') {
+            targetInputRef = this.addNameInputRef;
+        }
+        // Si on est sur 'name', ArrowDown ne fait rien
+    } else if (event.key === 'ArrowUp') {
+        if (currentField === 'name') {
+            targetInputRef = this.addUnitInputRef;
+        } else if (currentField === 'unit') {
+            targetInputRef = this.addQtyInputRef;
+        }
+        // Si on est sur 'qty', ArrowUp ne fait rien
+    }
+
+    // Mettre le focus sur la cible si elle existe
+    if (targetInputRef) {
+        // Utiliser setTimeout pour s'assurer que le DOM est prêt
+        this.zone.runOutsideAngular(() => {
+            setTimeout(() => {
+                targetInputRef?.nativeElement?.focus();
+                // Optionnel: Sélectionner le contenu
+                // targetInputRef?.nativeElement?.select();
+            }, 0);
+        });
+    }
+}
 }

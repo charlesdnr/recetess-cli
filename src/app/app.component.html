@@ -3,7 +3,7 @@
   <app-global-loader></app-global-loader>
   <header class="app-header">
     <div style="cursor: pointer;" [routerLink]="'/'" class="logo-img">
-      <img  src="assets/images/logo.png" alt="logo">
+      <img src="assets/images/logo.png" alt="logo">
     </div>
 
     <div class="header-content">
@@ -29,12 +29,17 @@
 
               <div class="auth-buttons ml-3">
                 @if (isAdmin$ | async) {
-                <p-button
-                  label="Logout Admin"
-                  icon="pi pi-sign-out"
-                  styleClass="p-button-sm p-button-secondary"
-                  (click)="logout()"
-                ></p-button>
+                <div class="admin-info">
+                  <span class="admin-username mr-2">
+                    <i class="pi pi-user"></i> {{ (currentAdminUsername$ | async) || 'Admin' }}
+                  </span>
+                  <p-button
+                    label="Logout"
+                    icon="pi pi-sign-out"
+                    styleClass="p-button-sm p-button-secondary"
+                    (click)="logout()"
+                  ></p-button>
+                </div>
                 } @else {
                 <p-button
                   label="Admin Login"
@@ -65,12 +70,23 @@
     header="Connexion Administrateur"
     [(visible)]="displayLoginDialog"
     [modal]="true"
-    [style]="{ width: '300px' }"
+    [style]="{ width: '350px' }"
     [draggable]="false"
     [resizable]="false"
-    (onHide)="adminPasswordInput = ''"
+    (onHide)="adminPasswordInput = ''; adminUsernameInput = ''"
   >
-    <div class="p-fluid">
+    <div class="p-fluid container-dialog">
+      <!-- Nouveau champ pour le nom d'utilisateur -->
+      <div class="field">
+        <label for="adminUsername">Nom d'utilisateur</label>
+        <input
+          pInputText
+          id="adminUsername"
+          [(ngModel)]="adminUsernameInput"
+          placeholder="Laisser vide pour admin par défaut"
+        />
+        <small class="p-text-secondary">Optionnel pour l'admin original</small>
+      </div>
       <div class="field">
         <label for="adminPassword">Mot de passe</label>
         <p-password

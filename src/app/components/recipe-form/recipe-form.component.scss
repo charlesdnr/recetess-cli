@@ -369,7 +369,6 @@ h3 {
   }
 }
 
-
 .ingredient-row {
   display: flex;
   align-items: center;
@@ -377,12 +376,38 @@ h3 {
 }
 
 .ingredient-item-cdk {
-  display: flex;
-  flex-direction: row;
+  display: flex; // Garder flex pour la structure interne
   align-items: center;
-  width: 100%;
-}
+  padding: 2px 0; // **RÉDUIRE PADDING VERTICAL** (ajustez 2px si besoin)
+  margin-bottom: 2px; // **RÉDUIRE MARGE INFÉRIEURE** (ajustez 2px si besoin)
+  background-color: var(--surface-card); // Fond de chaque ligne
+  border-bottom: 1px solid var(--surface-hover); // **Ligne de séparation fine**
+  box-sizing: border-box; // Important pour les transitions
 
+  &:last-child {
+    border-bottom: none; // Pas de bordure pour le dernier
+    margin-bottom: 0;
+  }
+
+  .item-content {
+    padding: 0.25rem 0.5rem; // Peut-être réduire légèrement le padding interne aussi
+  }
+
+  .drag-handle {
+    padding-top: 0; // Réajuster si le padding a changé
+    align-self: stretch; // Étirer la poignée verticalement
+    display: flex;
+    align-items: center;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    color: var(--text-color-secondary);
+  }
+}
+.ingredients-list-cdk {
+  display: block; // Assurez-vous que c'est un conteneur de bloc
+  // border: 1px solid var(--surface-border); // Optionnel: pour mieux voir la zone
+  border-radius: var(--border-radius);
+}
 .item-content {
   display: flex;
   flex-direction: row;
@@ -409,6 +434,39 @@ h3 {
   cursor: move;
   padding-top: 8px; /* Pour aligner avec le début du texte */
 }
+// Style de l'élément pendant qu'on le déplace (le "fantôme")
+.cdk-drag-preview {
+  box-sizing: border-box;
+  border-radius: var(--border-radius);
+  box-shadow: 0 5px 5px -3px rgba(0, 0, 0, 0.2),
+    0 8px 10px 1px rgba(0, 0, 0, 0.14), 0 3px 14px 2px rgba(0, 0, 0, 0.12); // Ombre portée style Material
+  background: var(
+    --surface-highlight
+  ); // Fond légèrement différent pour le fantôme
+}
+
+// Style de l'espace réservé où l'élément peut être déposé
+.cdk-drag-placeholder {
+  background: rgba(var(--primary-rgb), 0.1); // Fond très léger couleur primaire
+  border: 1px dashed var(--primary-color);
+  min-height: 45px; // Ajustez à la hauteur approx. d'un item après réduction padding
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1); // Animation douce de l'espace
+  opacity: 0.5;
+  // Masquer le contenu interne du placeholder généré par CDK
+  > * {
+    visibility: hidden;
+  }
+}
+
+// Appliquer une transition douce aux éléments qui bougent pour laisser la place
+.cdk-drop-list-dragging .cdk-drag {
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1); // Ajustez la durée/timing si besoin
+}
+
+// Animation de l'élément qui vient d'être déposé et prend sa place finale
+.cdk-drag-animating {
+  transition: transform 300ms cubic-bezier(0, 0, 0.2, 1);
+}
 
 .step-number {
   padding-top: 8px; /* Pour aligner avec le début du texte */
@@ -421,4 +479,79 @@ h3 {
 textarea.p-inputtext-sm {
   width: 100%;
   resize: vertical; /* Permet à l'utilisateur de redimensionner verticalement */
+}
+.quick-add-field {
+  margin-bottom: 1rem; // Espace avant la liste
+
+  label {
+    font-weight: 500; // Rendre le label un peu plus visible
+    display: block;
+    margin-bottom: 0.5rem;
+  }
+
+  // Assurer que le bouton dans InputGroup prend moins de place
+  :host ::ng-deep .p-inputgroup .p-button.p-button-icon-only {
+    width: auto; // Permet au bouton de s'adapter à l'icône
+  }
+  :host ::ng-deep .p-inputgroup .p-button.p-button-sm {
+    padding: 0.5rem; // Ajuster le padding du petit bouton si besoin
+  }
+
+  .form-help-text {
+    font-size: 0.85rem;
+    color: var(--secondary-color); // Ou --text-color-secondary
+  }
+}
+
+// Espacement entre le champ d'ajout et la liste
+.list-container.mt-3 {
+  margin-top: 1.5rem !important; // Un peu plus d'espace
+}
+
+// Message quand la liste est vide
+.list-empty-message {
+  padding: 1rem;
+  text-align: center;
+  color: var(--text-color-secondary);
+  border: 1px dashed var(--surface-border);
+  border-radius: var(--border-radius);
+  margin-top: 0.5rem; // Espace après le champ d'ajout
+}
+.quick-add-form {
+  border: 1px solid var(--surface-border);
+  padding: 0.75rem;
+  border-radius: var(--border-radius);
+  background-color: var(--surface-section); // Légèrement différent du fond ?
+  margin-bottom: 1.5rem; // Espace avant la liste
+
+  .field {
+    margin-bottom: 0; // Pas de marge sous les champs dans cette ligne compacte
+    padding-right: 0.5rem; // Espace entre les champs
+    &:last-child {
+      padding-right: 0;
+    }
+  }
+  // S'assurer que p-inputNumber ne prend pas trop de hauteur
+  :host ::ng-deep .p-inputnumber .p-inputtext {
+    padding-top: 0.4rem;
+    padding-bottom: 0.4rem;
+  }
+}
+
+// Message quand la liste D&D est vide
+.list-container.list-empty {
+  border: 1px dashed var(--surface-d); // Bordure différente si vide
+  padding: 1rem;
+  min-height: 60px; // Hauteur minimale pour voir le message
+}
+.list-empty-message {
+  text-align: center;
+  color: var(--text-color-secondary);
+  font-style: italic;
+  padding: 1rem 0;
+}
+.container-header-ing {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }

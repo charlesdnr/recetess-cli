@@ -130,3 +130,41 @@
 ::ng-deep .p-button {
   min-width: 127px;
 }
+
+.admin-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.admin-username {
+  display: flex;
+  align-items: center;
+  font-size: 0.9rem;
+  color: var(--primary-color, #3B82F6);
+  gap: 5px;
+  padding: 3px 8px;
+  background-color: rgba(59, 130, 246, 0.1);
+  border-radius: 4px;
+}
+
+.mr-2 {
+  margin-right: 0.5rem;
+}
+
+.ml-3 {
+  margin-left: 0.75rem;
+}
+
+/* Style pour le texte de conseil */
+.p-text-secondary {
+  color: #6c757d;
+  font-size: 0.75rem;
+  margin-top: 4px;
+  display: block;
+}
+.container-dialog {
+  ::ng-deep .p-inputtext{
+    width: 100%;
+  }
+}

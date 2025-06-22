@@ -5,7 +5,7 @@
     <a
         [routerLink]="['/search']"
         pButton
-        label="Voir TOUTES les recettes"
+        [label]="'Voir TOUTES les recettes (' + recipesCount + ')'"
         icon="pi pi-list"
         styleClass="p-button-raised p-button-secondary"
     ></a>
@@ -56,7 +56,7 @@
             <a
               [routerLink]="getCategoryLink(category.name)"
               pButton
-              label="Voir toutes les recettes"
+              [label]="'Voir toutes les recettes (' + category.recipeCount + ')'"
               icon="pi pi-arrow-right"
               iconPos="right"
               class="p-button-sm p-button-text"

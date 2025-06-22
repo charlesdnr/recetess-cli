@@ -1,51 +1,69 @@
-// Recettes/recettes/src/app/components/home/home.component.ts
+// src/app/components/home/home.component.ts
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router'; // Assurez-vous que RouterLink est importé
+import { RouterLink } from '@angular/router';
 import { CardModule } from 'primeng/card';
 import { ButtonModule } from 'primeng/button';
-import { DividerModule } from 'primeng/divider'; // Importez si vous l'utilisez (optionnel)
-import { Category } from '../../models/recipe.model';
+import { DividerModule } from 'primeng/divider';
+import { Category, Recipe } from '../../models/recipe.model';
 import { RecipeService } from '../../services/recipe.service';
+import { forkJoin } from 'rxjs'; // Import de forkJoin
+
+// Interface étendue pour inclure le nombre de recettes
+interface CategoryWithCount extends Category {
+  recipeCount: number;
+}
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  // Incluez les modules nécessaires, notamment CommonModule, RouterLink, CardModule
   imports: [CommonModule, RouterLink, CardModule, ButtonModule, DividerModule],
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss']
 })
 export class HomeComponent implements OnInit {
-  // Une seule liste pour toutes les catégories
-  allCategories: Category[] = [];
+  // Utiliser notre nouvelle interface pour le typage
+  allCategories: CategoryWithCount[] = [];
   isLoading: boolean = true;
+  recipesCount: number = 0;
 
   constructor(private recipeService: RecipeService) {}
 
   ngOnInit(): void {
     this.isLoading = true;
-    this.recipeService.getCategories().subscribe({
-      next: (categories) => {
-        // Affectez directement toutes les catégories à la liste unique
-        this.allCategories = categories;
+
+    // Utiliser forkJoin pour charger les catégories et les recettes en parallèle
+    forkJoin({
+      categories: this.recipeService.getCategories(),
+      recipes: this.recipeService.loadAllRecipesFromApi() // S'assurer de charger toutes les recettes
+    }).subscribe({
+      next: ({ categories, recipes }) => {
+        this.recipesCount = recipes.length;
+
+        // Calculer le nombre de recettes pour chaque catégorie
+        this.allCategories = categories.map(category => {
+          const count = recipes.filter(recipe => recipe.category === category.name).length;
+          return {
+            ...category,
+            recipeCount: count // Ajouter la propriété recipeCount
+          };
+        });
+
         this.isLoading = false;
       },
       error: (err) => {
-        console.error("Erreur lors du chargement des catégories:", err);
+        console.error("Erreur lors du chargement des données :", err);
         this.isLoading = false;
       }
     });
   }
 
-  // Fonctions utilitaires pour générer les liens proprement
+  // Les fonctions de liens restent inchangées
   getCategoryLink(categoryName: string): string[] {
-    // Assurez-vous que le nom est correctement formaté pour l'URL si nécessaire
     return ['/category', categoryName];
   }
 
   getSubcategoryLink(categoryName: string, subcategoryName: string): string[] {
-    // Idem pour les sous-catégories
     return ['/category', categoryName, subcategoryName];
   }
 }

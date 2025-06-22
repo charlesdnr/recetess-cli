@@ -53,7 +53,7 @@ export class AuthService {
 
   // Méthode pour obtenir le token
   public getToken(): string | null {
-    return localStorage.getItem(this.storageKey);
+    return sessionStorage.getItem(this.storageKey);
   }
 
   // Décodage simple du JWT (sans vérification de signature)
@@ -172,11 +172,11 @@ export class AuthService {
 
   // Stocker le token
   private storeToken(token: string): void {
-    localStorage.setItem(this.storageKey, token);
+    sessionStorage.setItem(this.storageKey, token);
   }
 
   // Effacer le token
   private clearToken(): void {
-    localStorage.removeItem(this.storageKey);
+    sessionStorage.removeItem(this.storageKey);
   }
 }
